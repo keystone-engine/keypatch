@@ -1,4 +1,4 @@
-This is the place holder for the **Keypatch** tool that we will release at our Blackhat USA talk next week.
+This is the place holder for the **Keypatch** tool that will be released at our [Blackhat USA talk](https://www.blackhat.com/us-16/briefings.html#keystone-engine-next-generation-assembler-framework) next week.
 Stay tuned!
 
 ---
