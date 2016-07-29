@@ -10,7 +10,7 @@ As a part of our talk on Keystone, we will release a brand new Reversing tool na
 Come to see our talk about **Keystone** & see the demo on this little fun tool.
 
 - Place: **South Seas IJ**, Convention Center, Mandalay Bay, Las Vegas, USA
-- Time: **09:25 August 4th**, 2016
+- Time: **09:00 ~ 09:25 August 4th**, 2016
 
 We will bring to Blackhat [some swags (like stickers, Tshirts)](http://www.keystone-engine.org/donate.html) of the Reverse Engineering Trilogy Capstone/Unicorn/Keystone. See me after our talk if you want them :-)
 
