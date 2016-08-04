@@ -1,0 +1,12 @@
+This file credits the contributors of Keypatch
+Find more information on our project at http://keystone-engine.org/keypatch
+---------------------------------------------------------------------------
+
+This tool uses some ideas from https://github.com/neoz/asm_ops.
+Thanks Neoz!
+
+Thanks Joxean Koret for being very patient whenever I bugged him
+for some tips on IDA programming.
+
+Thanks Kaijern (Xwings) & Nguyen Van Luc for valuable feedback on
+the beta code.

@@ -1,0 +1,7 @@
+1) IDA syntax is different from Keystone syntax, so before compiling the input
+code, Keypatch always try to convert IDA syntax to Keystone syntax. This is not
+complete yet, so sometimes you see code that Keypatch cannot compile.
+See function fix_ida_syntax() for further details.
+
+2) Some architectures such as X86, ARM & ARM64 are better tested than the rest.
+Need more tests for Hexagon, Mips, PPC, Sparc & SystemZ.
