@@ -3,8 +3,6 @@ Keypatch
 
 Keypatch is a IDA Pro plugin for [Keystone Assembler Engine](http://keystone-enigine.org).
 
-Get the latest version at [keystone-engine.org/keypatch](http://keystone-engine.org/keypatch)
-
 Keypatch consists of 2 tools inside.
 
 - **Patcher**: this allows you to type in assembly to directly patch your binary.
@@ -60,7 +58,7 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
     - By default, the modification you made is only recorded in the IDA database. To apply these changes to the original binary (thus overwrite it), choose menu `Edit | Patch program | Apply patches to input file`.
 
 <p align="center">
-<img src="screenshots/keypatch_patcher.png" height="260" />
+<img src="screenshots/keypatch_patcher.png" height="360" />
 </p>
 
 - To do some code assembling (without overwritting binary), open **Keypatch Assembler** from menu `Edit | Keypatch | Assembler`.
@@ -68,7 +66,7 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
     - Keypatch would *automatically* update the encoding in the `Encode` box while you are typing, without waiting for `ENTER` keystroke.
 
 <p align="center">
-<img src="screenshots/keypatch_assembler.png" height="260" />
+<img src="screenshots/keypatch_assembler.png" height="300" />
 </p>
 
 
