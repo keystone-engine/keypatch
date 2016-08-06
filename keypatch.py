@@ -99,7 +99,7 @@ class Keypatch_Asm:
             if info.is_64bit():
                 arch = KS_ARCH_ARM64
                 mode = KS_MODE_LITTLE_ENDIAN
-            elif info.is_32bit():
+            else:
                 arch = KS_ARCH_ARM
                 # either big-endian or little-endian
                 if cpuname == "arm":
