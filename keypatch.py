@@ -13,6 +13,7 @@
 import idc
 import idaapi
 import re
+import json
 from collections import OrderedDict
 from keystone import *
 
@@ -24,6 +25,9 @@ MAX_INSTRUCTION_STRLEN = 64
 MAX_ENCODING_LEN = 40
 MAX_ADDRESS_LEN = 40
 ENCODING_ERR_OUTPUT = "..."
+
+# Configuration file
+KP_CFGFILE = os.path.join(idaapi.get_user_idadir(), "keypatch.cfg")
 
 def to_hexstr(buf, sep=' '):
     return sep.join("{:02x}".format(ord(c)) for c in buf).upper()
@@ -748,7 +752,7 @@ class Keypatch_Form(idaapi.Form):
 
 # Patcher form
 class Keypatch_Patcher(Keypatch_Form):
-    def __init__(self, kp_asm, address, assembly=None, opts=0):
+    def __init__(self, kp_asm, address, assembly=None, opts=None):
         self.setup(kp_asm, address, assembly)
 
         # create Patcher form
@@ -786,7 +790,7 @@ KEYPATCH:: Patcher
                           items = self.kp_asm.syntax_lists.keys(),
                           readonly = True,
                           selval = self.syntax_id),
-            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', ''), value=opts),
+            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', ''), value=opts['c_opt_padding']),
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
@@ -935,7 +939,24 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
     wanted_hotkey = ""
     flags = idaapi.PLUGIN_KEEP
 
+
+    def load_configuration(self):
+        # default 
+        self.opts = {}
+        self.opts['c_opt_padding'] = 1
+        
+        # load configuration from file
+        try:
+            f = open(KP_CFGFILE, "rt")
+            self.opts = json.load(f)
+            f.close()
+        except IOError:
+            print("Keypatch: Use default configuration.")
+        except Exception as e:
+            print("Keypatch: Exception: %s" % (str(e)))
+        
     def init(self):
+        self.opts = None
         # add a menu for Keypatch patcher & assembler
         menu_ctx = idaapi.add_menu_item("Edit/Keypatch/", "Patcher", "Ctrl-Alt-K", 1, self.patcher, None)
         if menu_ctx is not None:
@@ -946,14 +967,24 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             print("Keypatch Patcher's shortcut key is CTRL+ALT+K")
             print("Keypatch Assembler is available from menu Edit | Keypatch | Assembler")
             print("Find more information about Keypatch at http://keystone-engine.org/keypatch")
-            print("=" * 80)
-
+            
+            self.load_configuration()
+            #
+            print("=" * 80)    
             self.kp_asm = Keypatch_Asm()
 
         return idaapi.PLUGIN_KEEP
 
     def term(self):
-        pass
+        if self.opts is None:
+            return
+        #save configuration to file
+        try:
+            json.dump(self.opts, open(KP_CFGFILE, "wt"))
+        except Exception as e:
+            print("Keypatch: Exception: %s" % (str(e)))
+        else:
+            print("Keypatch: Configuration is saved to %s" % (KP_CFGFILE))
 
     # handler for Assembler menu
     def assembler(self):
@@ -971,10 +1002,13 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
         address = idc.ScreenEA()
         # turn on padding by default
-        init_opts = 1
+        #init_opts = 1 # obsoleted
+        if self.opts is None:
+            self.load_configuration()
+
         init_assembly = None
         while True:
-            f = Keypatch_Patcher(self.kp_asm, address, assembly=init_assembly, opts=init_opts)
+            f = Keypatch_Patcher(self.kp_asm, address, assembly=init_assembly, opts=self.opts)
             ok = f.Execute()
             if ok == 1:
                 try:
@@ -984,8 +1018,8 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                         syntax = self.kp_asm.get_syntax_by_idx(syntax_id)
 
                     assembly = f.c_assembly.value
-                    opts = f.get_opts()
-                    padding = (opts.get("c_opt_padding", 0) != 0)
+                    self.opts = f.get_opts()
+                    padding = (self.opts.get("c_opt_padding", 0) != 0)
 
                     raw_assembly = self.kp_asm.ida_resolve(assembly, address)
 
