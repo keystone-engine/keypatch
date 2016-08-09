@@ -854,9 +854,9 @@ KEYPATCH:: Assembler
             <~S~yntax     :{c_syntax}>
             <A~d~dress    :{c_addr}>
             <~A~ssembly   :{c_assembly}>
-             <-   ~F~ixup :{c_raw_assembly}>
+             <-   Fixup :{c_raw_assembly}>
              <-   ~E~ncode:{c_encoding}>
-             <-   S~i~ze  :{c_encoding_len}>
+             <-   Size  :{c_encoding_len}>
             """, {
             'c_addr': Form.NumericInput(value=address, swidth=MAX_ADDRESS_LEN, tp=Form.FT_ADDR),
             'c_assembly': Form.StringInput(value=self.asm[:MAX_INSTRUCTION_STRLEN], width=MAX_INSTRUCTION_STRLEN),
