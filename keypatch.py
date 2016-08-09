@@ -764,14 +764,14 @@ KEYPATCH:: Patcher
             {FormChangeCb}
             <Endian     :{c_endian}>
             <~S~yntax     :{c_syntax}>
-            <A~d~dress    :{c_addr}>
-            <~O~riginal   :{c_orig_assembly}>
-             <-   E~n~code:{c_orig_encoding}>
-             <-   S~i~ze  :{c_orig_len}>
+            <Address    :{c_addr}>
+            <Original   :{c_orig_assembly}>
+             <-   Encode:{c_orig_encoding}>
+             <-   Size  :{c_orig_len}>
             <~A~ssembly   :{c_assembly}>
-             <-   ~F~ixup :{c_raw_assembly}>
+             <-   Fixup :{c_raw_assembly}>
              <-   ~E~ncode:{c_encoding}>
-             <-   Si~z~e  :{c_encoding_len}>
+             <-   Size  :{c_encoding_len}>
             <Padding extra bytes with ~N~OPs:{c_opt_padding}>{c_opt_chk}>
             """, {
             'c_endian': Form.DropdownListControl(
