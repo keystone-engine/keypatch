@@ -383,7 +383,7 @@ class Keypatch_Asm:
             def check_ppc_insn(mnem):
                 return mnem in ("stw")
 
-            # replace the right most string occured
+            # replace the right most string occurred
             def rreplace(s, old, new):
                 li = s.rsplit(old, 1)
                 return new.join(li)
@@ -637,7 +637,7 @@ class Keypatch_Asm:
 
 
 # Dialog for interactive assembler & patcher
-# Common ancestor form to be shared between Patcher & Assmembler
+# Common ancestor form to be shared between Patcher & Assembler
 class Keypatch_Form(idaapi.Form):
     # prepare for form initializing
     def setup(self, kp_asm, address, assembly=None):
@@ -759,16 +759,16 @@ KEYPATCH:: Patcher
 
             {FormChangeCb}
             <Endian     :{c_endian}>
-            <Syntax     :{c_syntax}>
-            <Address    :{c_addr}>
-            <Original   :{c_orig_assembly}>
-             <-   Encode:{c_orig_encoding}>
-             <-   Size  :{c_orig_len}>
-            <Assembly   :{c_assembly}>
-             <-   Fixup :{c_raw_assembly}>
-             <-   Encode:{c_encoding}>
-             <-   Size  :{c_encoding_len}>
-            <Padding extra bytes with NOPs:{c_opt_padding}>{c_opt_chk}>
+            <~S~yntax     :{c_syntax}>
+            <A~d~dress    :{c_addr}>
+            <~O~riginal   :{c_orig_assembly}>
+             <-   E~n~code:{c_orig_encoding}>
+             <-   S~i~ze  :{c_orig_len}>
+            <~A~ssembly   :{c_assembly}>
+             <-   ~F~ixup :{c_raw_assembly}>
+             <-   ~E~ncode:{c_encoding}>
+             <-   Si~z~e  :{c_encoding_len}>
+            <Padding extra bytes with ~N~OPs:{c_opt_padding}>{c_opt_chk}>
             """, {
             'c_endian': Form.DropdownListControl(
                           items = self.kp_asm.endian_lists.keys(),
@@ -804,8 +804,10 @@ KEYPATCH:: Patcher
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
         (arch, mode) = (self.kp_asm.arch, self.kp_asm.mode)
+        # assembly is focused
+        self.SetFocusedField(self.c_assembly)
 
-        # make address, arch, endian and syntax readonly in patch_mode mode
+        # make address, arch, endian and syntax read-only in patch_mode mode
         self.EnableField(self.c_orig_assembly, False)
         self.EnableField(self.c_orig_encoding, False)
         self.EnableField(self.c_orig_len, False)
@@ -843,14 +845,14 @@ BUTTON YES* Close
 KEYPATCH:: Assembler
 
             {FormChangeCb}
-            <Arch       :{c_arch}>
-            <Endian     :{c_endian}>
-            <Syntax     :{c_syntax}>
-            <Address    :{c_addr}>
-            <Assembly   :{c_assembly}>
-             <-   Fixup :{c_raw_assembly}>
-             <-   Encode:{c_encoding}>
-             <-   Size  :{c_encoding_len}>
+            <A~r~ch       :{c_arch}>
+            <E~n~dian     :{c_endian}>
+            <~S~yntax     :{c_syntax}>
+            <A~d~dress    :{c_addr}>
+            <~A~ssembly   :{c_assembly}>
+             <-   ~F~ixup :{c_raw_assembly}>
+             <-   ~E~ncode:{c_encoding}>
+             <-   S~i~ze  :{c_encoding_len}>
             """, {
             'c_addr': Form.NumericInput(value=address, swidth=MAX_ADDRESS_LEN, tp=Form.FT_ADDR),
             'c_assembly': Form.StringInput(value=self.asm[:MAX_INSTRUCTION_STRLEN], width=MAX_INSTRUCTION_STRLEN),
@@ -880,6 +882,9 @@ KEYPATCH:: Assembler
         # only Assembler mode allows to select arch+mode
         arch_id = self.GetControlValue(self.c_arch)
         (arch, mode) = self.kp_asm.get_arch_by_idx(arch_id)
+		
+        # assembly is focused
+        self.SetFocusedField(self.c_assembly)
 
         if arch == KS_ARCH_X86:
             # enable Syntax and disable Endian for x86
