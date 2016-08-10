@@ -12,8 +12,9 @@ Keypatch is confirmed to work on IDA Pro version 6.4, 6.8 & 6.9, but should work
 If you find any issues, please [report](http://keystone-engine.org/contact).
 
 
-### 1. Why Keypatch?
 --------------------
+
+### 1. Why Keypatch?
 
 Sometimes we want to patch the binary while analyzing it in IDA, but unfortunately the built-in asssembler of IDA Pro is not adequate.
 
@@ -30,8 +31,9 @@ Keypatch was developed to solve this problem. Thanks to the power of [Keystone](
 Keypatch can be the missing piece in your toolset of reverse engineering.
 
 
-### 2. Install
 --------------
+
+### 2. Install
 
 - Install Keystone core & Python binding for Python 2.7 from [keystone-engine.org/download](http://keystone-engine.org/download). Or follow the steps in the [appendix section](#appendix-install-keystone-for-ida-pro).
 
@@ -45,8 +47,9 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 - On other \*nix platforms, the above error message means you do not have 32-bit Keystone installed yet. See [appendix section](#appendix-install-keystone-for-ida-pro) below for more instructions to fix this.
 
 
-### 3. Usage
 ------------
+
+### 3. Usage
 
 - To patch your binary, press hotkey `CTRL+ALT+K` inside IDA to open **Keypatch Patcher** dialog.
     - The original assembly, encode & instruction size will be displayed in 3 controls at the top part of the form.
@@ -70,8 +73,9 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 </p>
 
 
-### 4. Contact
 --------------
+
+### 4. Contact
 
 Email keystone.engine@gmail.com for any questions.
 
