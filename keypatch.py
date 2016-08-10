@@ -770,7 +770,7 @@ KEYPATCH:: Patcher
              <-   Size  :{c_orig_len}>
             <~A~ssembly   :{c_assembly}>
              <-   Fixup :{c_raw_assembly}>
-             <-   ~E~ncode:{c_encoding}>
+             <-   Encode:{c_encoding}>
              <-   Size  :{c_encoding_len}>
             <Padding extra bytes with ~N~OPs:{c_opt_padding}>{c_opt_chk}>
             """, {
@@ -855,7 +855,7 @@ KEYPATCH:: Assembler
             <A~d~dress    :{c_addr}>
             <~A~ssembly   :{c_assembly}>
              <-   Fixup :{c_raw_assembly}>
-             <-   ~E~ncode:{c_encoding}>
+             <-   Encode:{c_encoding}>
              <-   Size  :{c_encoding_len}>
             """, {
             'c_addr': Form.NumericInput(value=address, swidth=MAX_ADDRESS_LEN, tp=Form.FT_ADDR),
