@@ -92,17 +92,10 @@ If you prefer to compile from source, just use MSVC 32-bit & follow the instruct
 
 #### A2. MacOS
 
-Since version 0.9.1, by default Keystone is built in universal format, so you just need to follow the instruction in [Unix documentation](https://github.com/keystone-engine/keystone/blob/master/docs/COMPILE-NIX.md) to compile & install it. After that, install Python module as in [Python documentation](https://github.com/keystone-engine/keystone/blob/master/bindings/python/README.md).
-
-In short, you can simply run the following commands in the source directory of Keystone to do all the above.
+Install the core & Python module of Keystone with the following command:
 
 ```
-$ mkdir build
-$ cd build
-$ ../make-share.sh
-$ sudo make install
-$ cd bindings/python
-$ sudo make install
+$ sudo pip install keystone-engine
 ```
 
 #### A3. Linux
