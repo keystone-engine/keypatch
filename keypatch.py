@@ -288,6 +288,18 @@ class Keypatch_Asm:
 
         return dtyp_name
 
+    # return all instruction from start to end
+    def ida_get_disasms(self, start, end):
+        codes = []
+        while start < end:
+            asm = self.asm_normalize(idc.GetDisasm(start))
+            if asm == None:
+                asm = ''
+            codes.append(asm)
+            start = start + idc.ItemSize(start)
+
+        return codes
+
     # get disasm from IDA
     # return '' on invalid address
     def ida_get_disasm(self, address, fixup=False):
@@ -530,7 +542,7 @@ class Keypatch_Asm:
     #   -1  PatchByte failure
     #   -2  Can't read original data
     #   -3  Invalid address
-    def patch_code(self, address, assembly, syntax, padding=False):
+    def patch_code(self, address, assembly, syntax, padding=False, comment=True):
 
         # patch at address, return the number of written bytes
         def _patch(address, patch_data, len):
@@ -570,20 +582,38 @@ class Keypatch_Asm:
             return 0
 
         patch_len = len(encoding)
-        encoding = ''.join(chr(c) for c in encoding)
+        patch_data = ''.join(chr(c) for c in encoding)
 
-        if encoding == orig_encoding:
+        if patch_data == orig_encoding:
             print("Keypatch: no need to patch, same encoding data [{}] at 0x{:X}".format(to_hexstr(orig_encoding), address))
             return orig_len
 
-        if padding and patch_len < orig_len:
-            # for now, only support NOP padding on Intel CPU
-            if self.arch == KS_ARCH_X86:
-                nop = "\x90"
-                patch_len = orig_len
-                encoding = encoding.ljust(patch_len, nop)
+        patch_address = address
+        orig_codes = []
 
-        (plen, p_orig_data) = _patch(address, encoding, patch_len)
+        # for now, only support NOP padding on Intel CPU
+        if padding and self.arch == KS_ARCH_X86:
+            nop = "\x90"
+
+            if patch_len < orig_len:
+                patch_len = orig_len
+                patch_data = patch_data.ljust(patch_len, nop)
+            elif patch_len > orig_len:
+                patch_end = patch_address + patch_len - 1
+                ins_end = ItemEnd(patch_end)
+                padding_len = ins_end - patch_end
+
+                if padding_len > 0:
+                    patch_len = ins_end - patch_address
+                    patch_data = patch_data.ljust(patch_len, nop)
+
+        orig_codes = self.ida_get_disasms(patch_address, patch_address + patch_len)
+
+        # save original function end to fix IDA re-analyze issue after patching
+        orig_func_end = idc.GetFunctionAttr(address, idc.FUNCATTR_END)
+
+        (plen, p_orig_data) = _patch(patch_address, patch_data, patch_len)
+
         if plen != patch_len:
             # patch failure
 
@@ -600,7 +630,18 @@ class Keypatch_Asm:
             return -1
 
         print("Keypatch: successfully patched {:d} byte(s) at 0x{:X} from [{}] to [{}]".format(plen,
-                                        address, to_hexstr(p_orig_data), to_hexstr(encoding)))
+                                        address, to_hexstr(p_orig_data), to_hexstr(patch_data)))
+
+        # ask IDA to re-analyze the patched area
+        idaapi.analyze_area(address, orig_func_end)
+
+        # try to fix IDA function re-analyze issue after patching
+        idaapi.func_setend(address, orig_func_end)
+
+        if comment:
+            # add original instruction to comments
+            comments = 'Keypatch modified this from\n  ' + '\n  '.join(orig_codes)
+            idc.MakeComm(address, comments)
 
         return plen
 
@@ -772,7 +813,8 @@ KEYPATCH:: Patcher
              <-   Fixup :{c_raw_assembly}>
              <-   Encode:{c_encoding}>
              <-   Size  :{c_encoding_len}>
-            <Padding extra bytes with ~N~OPs:{c_opt_padding}>{c_opt_chk}>
+            <~N~OPs padding until next instruction boundary:{c_opt_padding}>
+            <Add ~i~nfo about instruction patching:{c_opt_comment}>{c_opt_chk}>
             """, {
             'c_endian': Form.DropdownListControl(
                           items = self.kp_asm.endian_lists.keys(),
@@ -790,19 +832,23 @@ KEYPATCH:: Patcher
                           items = self.kp_asm.syntax_lists.keys(),
                           readonly = True,
                           selval = self.syntax_id),
-            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', ''), value=opts['c_opt_padding']),
+            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', ''), value=opts['c_opt_chk']),
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
         self.Compile()
 
     # get Patcher options
-    def get_opts(self):
+    def get_opts(self, name=None):
         names = self.c_opt_chk.children_names
         val = self.c_opt_chk.value
         opts = {}
         for i in range(len(names)):
             opts[names[i]] = val & (2**i)
+
+        if name != None:
+            opts[name] = val
+
         return opts
 
     # callback to be executed when any form control changed
@@ -943,8 +989,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
     def load_configuration(self):
         # default 
         self.opts = {}
-        self.opts['c_opt_padding'] = 1
-        
+
         # load configuration from file
         try:
             f = open(KP_CFGFILE, "rt")
@@ -954,7 +999,12 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             print("Keypatch: Use default configuration.")
         except Exception as e:
             print("Keypatch: Exception: %s" % (str(e)))
-        
+
+        # use default values if not defined in config file
+        self.opts['c_opt_padding'] = self.opts.get('c_opt_padding', 1)
+        self.opts['c_opt_comment'] = self.opts.get('c_opt_comment', 2)
+        self.opts['c_opt_chk'] = self.opts.get('c_opt_chk', 3)
+
     def init(self):
         self.opts = None
         # add a menu for Keypatch patcher & assembler
@@ -1001,8 +1051,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             return
 
         address = idc.ScreenEA()
-        # turn on padding by default
-        #init_opts = 1 # obsoleted
+
         if self.opts is None:
             self.load_configuration()
 
@@ -1018,15 +1067,16 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                         syntax = self.kp_asm.get_syntax_by_idx(syntax_id)
 
                     assembly = f.c_assembly.value
-                    self.opts = f.get_opts()
+                    self.opts = f.get_opts('c_opt_chk')
                     padding = (self.opts.get("c_opt_padding", 0) != 0)
+                    comment = (self.opts.get("c_opt_comment", 0) != 0)
 
                     raw_assembly = self.kp_asm.ida_resolve(assembly, address)
 
                     print("Keypatch: attempt to modify \"{}\" at 0x{:X} to \"{}\"".format(
                             self.kp_asm.ida_get_disasm(address), address, assembly))
 
-                    length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding=padding)
+                    length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding=padding, comment=comment)
 
                     if length > 0:
                         # update start address pointing to the next instruction
