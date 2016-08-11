@@ -288,7 +288,7 @@ class Keypatch_Asm:
 
         return dtyp_name
 
-    # return all instruction from start to end
+    # return asm instructions from start to end
     def ida_get_disasms(self, start, end):
         codes = []
         while start < end:
@@ -542,7 +542,7 @@ class Keypatch_Asm:
     #   -1  PatchByte failure
     #   -2  Can't read original data
     #   -3  Invalid address
-    def patch_code(self, address, assembly, syntax, padding=False, comment=True):
+    def patch_code(self, address, assembly, syntax, padding=False, save_origcode=True):
 
         # patch at address, return the number of written bytes
         def _patch(address, patch_data, len):
@@ -608,6 +608,7 @@ class Keypatch_Asm:
                     patch_data = patch_data.ljust(patch_len, nop)
 
         orig_codes = self.ida_get_disasms(patch_address, patch_address + patch_len)
+        orig_comment = idc.Comment(address)
 
         # save original function end to fix IDA re-analyze issue after patching
         orig_func_end = idc.GetFunctionAttr(address, idc.FUNCATTR_END)
@@ -638,9 +639,14 @@ class Keypatch_Asm:
         # try to fix IDA function re-analyze issue after patching
         idaapi.func_setend(address, orig_func_end)
 
-        if comment:
-            # add original instruction to comments
-            comments = 'Keypatch modified this from\n  ' + '\n  '.join(orig_codes)
+        if save_origcode:
+            # append original instruction to comments
+            if orig_comment == None:
+                orig_comment = ''
+            else:
+                orig_comment = '{}\n'.format(orig_comment)
+
+            comments = "{}Keypatch modified this from\n  {}".format(orig_comment, '\n  '.join(orig_codes))
             idc.MakeComm(address, comments)
 
         return plen
@@ -814,7 +820,7 @@ KEYPATCH:: Patcher
              <-   Encode:{c_encoding}>
              <-   Size  :{c_encoding_len}>
             <~N~OPs padding until next instruction boundary:{c_opt_padding}>
-            <Add ~i~nfo about instruction patching:{c_opt_comment}>{c_opt_chk}>
+            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>{c_opt_chk}>
             """, {
             'c_endian': Form.DropdownListControl(
                           items = self.kp_asm.endian_lists.keys(),
@@ -1076,7 +1082,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     print("Keypatch: attempt to modify \"{}\" at 0x{:X} to \"{}\"".format(
                             self.kp_asm.ida_get_disasm(address), address, assembly))
 
-                    length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding=padding, comment=comment)
+                    length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding=padding, save_origcode=comment)
 
                     if length > 0:
                         # update start address pointing to the next instruction
