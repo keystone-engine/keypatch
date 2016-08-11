@@ -14,7 +14,6 @@ import idc
 import idaapi
 import re
 import json
-from collections import OrderedDict
 from keystone import *
 
 
@@ -58,16 +57,13 @@ class Keypatch_Asm:
         "Big Endian": KS_MODE_BIG_ENDIAN,                       # big endian
     }
 
+    syntax_lists = {
+        "Intel": KS_OPT_SYNTAX_INTEL,
+        "Nasm": KS_OPT_SYNTAX_NASM,
+        "AT&T": KS_OPT_SYNTAX_ATT
+    }
+
     def __init__(self, arch=None, mode=None):
-
-        # sort architecture list by name
-        self.arch_lists = OrderedDict(sorted(self.arch_lists.items(), key=lambda x:x[0], reverse=False))
-
-        # we do not want syntaxes in random order
-        self.syntax_lists = OrderedDict()
-        self.syntax_lists["Intel"] = KS_OPT_SYNTAX_INTEL
-        self.syntax_lists["Nasm"] = KS_OPT_SYNTAX_NASM
-        self.syntax_lists["AT&T"] = KS_OPT_SYNTAX_ATT
 
         # update current arch and mode
         self.update_hardware_mode()
@@ -654,20 +650,28 @@ class Keypatch_Asm:
 
     ### Form helper functions
     @staticmethod
-    def get_value_by_idx(dictionary, idx, default=None):
+    def dict_to_ordered_list(dictionary):
+        list = sorted(dictionary.items(), key=lambda t: t[0], reverse=False)
+        keys = [i[0] for i in list]
+        values = [i[1] for i in list]
+
+        return (keys, values)
+
+    def get_value_by_idx(self, dictionary, idx, default=None):
+        (keys, values) = self.dict_to_ordered_list(dictionary)
+
         try:
-            items = dictionary.values()
-            val = items[idx]
+            val = values[idx]
         except IndexError:
             val = default
 
         return val
 
-    @staticmethod
-    def find_idx_by_value(dictionary, value, default=None):
+    def find_idx_by_value(self, dictionary, value, default=None):
+        (keys, values) = self.dict_to_ordered_list(dictionary)
+
         try:
-            items = dictionary.values()
-            idx = items.index(value)
+            idx = values.index(value)
         except:
             idx = default
 
@@ -695,6 +699,10 @@ class Keypatch_Form(idaapi.Form):
 
         self.kp_asm = kp_asm
         self.address = address
+
+        # update ordered list of arch and syntax
+        self.syntax_keys = self.kp_asm.dict_to_ordered_list(self.kp_asm.syntax_lists)[0]
+        self.arch_keys = self.kp_asm.dict_to_ordered_list(self.kp_asm.arch_lists)[0]
 
         # update current arch & mode
         self.kp_asm.update_hardware_mode()
@@ -835,7 +843,7 @@ KEYPATCH:: Patcher
             'c_encoding': Form.StringInput(value='', width=MAX_ENCODING_LEN),
             'c_encoding_len': Form.NumericInput(value=0, swidth=8, tp=Form.FT_DEC),
             'c_syntax': Form.DropdownListControl(
-                          items = self.kp_asm.syntax_lists.keys(),
+                          items = self.syntax_keys,
                           readonly = True,
                           selval = self.syntax_id),
             'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', ''), value=opts['c_opt_chk']),
@@ -916,7 +924,7 @@ KEYPATCH:: Assembler
             'c_encoding': Form.StringInput(value='', width=MAX_ENCODING_LEN),
             'c_encoding_len': Form.NumericInput(value=0, swidth=8, tp=Form.FT_DEC),
             'c_arch': Form.DropdownListControl(
-                          items = self.kp_asm.arch_lists.keys(),
+                          items = self.arch_keys,
                           readonly = True,
                           selval = self.arch_id,
                           width = 32),
@@ -925,7 +933,7 @@ KEYPATCH:: Assembler
                           readonly = True,
                           selval = self.endian_id),
             'c_syntax': Form.DropdownListControl(
-                          items = self.kp_asm.syntax_lists.keys(),
+                          items = self.syntax_keys,
                           readonly = True,
                           selval = self.syntax_id),
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
