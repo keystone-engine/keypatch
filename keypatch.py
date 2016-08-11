@@ -876,12 +876,12 @@ KEYPATCH:: Patcher
             self.ShowField(self.c_endian, False)
             # allow to choose Syntax
             self.ShowField(self.c_syntax, True)
+            self.ShowField(self.c_opt_padding, True)
         else:   # do not show Syntax control for non-X86 mode
             self.ShowField(self.c_syntax, False)
             # for now, we do not support padding for non-X86 archs
-            self.ShowField(self.c_opt_chk, False)
+            self.ShowField(self.c_opt_padding, False)
             #self.EnableField(self.c_opt_padding, False)
-            #self.c_opt_padding.checked = False
 
         # update other controls & Encoding with live assembling
         self.update_controls(arch, mode)
