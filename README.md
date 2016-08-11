@@ -57,7 +57,8 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
     - Keypatch would *automatically* update the encoding in the `Encode` box while you are typing, without waiting for `ENTER` keystroke.
         - Note that you can type IDA symbols, and the raw assembly will be displayed in the `Fixup` control.
     - Press `ENTER` or click `Patch` to overwrite the current instruction with the new code, then *automatically* advance to the the next instruction.
-        - Note that when the new code is shorter than the original code, the extra bytes will be filled in with NOPs by default. Uncheck the choice `Padding extra bytes with NOPs` if this is not desired.
+        - Note that when size of the new code is different from the original code, Keypatch can pad until the next instruction boundary with NOPs opcode, so the code flow is intact. Uncheck the choice `NOPs padding until next instruction boundary` if this is undesired.
+        - By default, Keypatch appends the modified instruction with the information of the original code (before being patched). Uncheck the choice `Save original instructions in IDA comment` to disable this feature.
     - By default, the modification you made is only recorded in the IDA database. To apply these changes to the original binary (thus overwrite it), choose menu `Edit | Patch program | Apply patches to input file`.
 
 <p align="center">
