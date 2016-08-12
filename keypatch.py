@@ -507,9 +507,6 @@ class Keypatch_Asm:
         if self.check_address(address) == 0:
             return (None, 0)
 
-        if arch == KS_ARCH_ARM and is_thumb(address):
-            mode = KS_MODE_THUMB
-
         # use default syntax, arch and mode if not provided
         if syntax is None:
             syntax = self.syntax
@@ -517,6 +514,9 @@ class Keypatch_Asm:
             arch = self.arch
         if mode is None:
             mode = self.mode
+
+        if arch == KS_ARCH_ARM and is_thumb(address):
+            mode = KS_MODE_THUMB
 
         try:
             ks = Ks(arch, mode)
