@@ -11,6 +11,7 @@
 # Hotkey to activate Keypatch Patcher is CTRL+ALT+K
 
 # To revert (undo) the last patching, choose menu "Edit | Keypatch | Undo last patching".
+# To check for update version, choose menu "Edit | Keypatch | Check for update".
 
 import idc
 import idaapi
@@ -19,6 +20,11 @@ import json
 from keystone import *
 
 
+# latest stable version
+# this will be grepped for by "Check for update" menu
+VERSION_STABLE = "1.0"
+
+# bleeding-edge version
 VERSION = "1.1"
 
 
@@ -26,6 +32,7 @@ MAX_INSTRUCTION_STRLEN = 64
 MAX_ENCODING_LEN = 40
 MAX_ADDRESS_LEN = 40
 ENCODING_ERR_OUTPUT = "..."
+KP_GITHUB_URL = "https://raw.githubusercontent.com/keystone-engine/keypatch/master/keypatch.py"
 
 # Configuration file
 KP_CFGFILE = os.path.join(idaapi.get_user_idadir(), "keypatch.cfg")
@@ -33,8 +40,40 @@ KP_CFGFILE = os.path.join(idaapi.get_user_idadir(), "keypatch.cfg")
 # save all the info on patching
 patch_info = []
 
+
 def to_hexstr(buf, sep=' '):
     return sep.join("{:02x}".format(ord(c)) for c in buf).upper()
+
+
+# download a file from @url, then return (result, file-content)
+# return (0, content) on success, or ({1|2}, None) on download failure
+def url_download(url):
+    from urllib2 import Request, urlopen, URLError, HTTPError
+
+    # create the url and the request
+    req = Request(url)
+
+    # Open the url
+    try:
+        # download this URL
+        f = urlopen(req)
+        content = f.read()
+        return (0, content)
+
+    # handle errors
+    except HTTPError, e:
+        # print "HTTP Error:", e.code , url
+        # fail to download this file
+        return (1, None)
+    except URLError, e:
+        # print "URL Error:", e.reason , url
+        # fail to download this file
+        return (1, None)
+    except Exception as e:
+        # fail to save the downloaded file
+        # print("Error:", e)
+        return (2, None)
+
 
 ## Main Keypatch class
 class Keypatch_Asm:
@@ -1045,7 +1084,10 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         # add a menu for Keypatch patcher & assembler
         menu_ctx = idaapi.add_menu_item("Edit/Keypatch/", "Patcher", "Ctrl-Alt-K", 1, self.patcher, None)
         if menu_ctx is not None:
+            idaapi.add_menu_item("Edit/Keypatch/", "Check for update", "", 1, self.updater, None)
+            idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
             idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
+            idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
             idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
             print("=" * 80)
             print("Keypatch registered IDA plugin {} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
@@ -1071,6 +1113,30 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             print("Keypatch: Exception: %s" % (str(e)))
         else:
             print("Keypatch: Configuration is saved to %s" % (KP_CFGFILE))
+
+    # null handler
+    def menu_null(self):
+        pass
+
+    # handler for Check-for-Update menu
+    def updater(self):
+        (r, content) = url_download(KP_GITHUB_URL)
+        if r == 0:
+            # find stable version
+            sig = 'VERSION_STABLE = "'
+            tmp = content[content.find(sig)+len(sig):]
+            version_stable = tmp[:tmp.find('"')]
+
+            # compare with the current version
+            if version_stable == VERSION:
+                idc.Warning("Your Keypatch is already on the latest stable version %s!" %VERSION)
+            else:
+                idc.Warning("Your Keypatch is v%s. Download stable version %s from http://keystone-engine.org/keypatch!" %(VERSION, stable_version))
+        else:
+            # fail to download
+            idc.Warning("ERROR: failed to connect to internet. Try again later.")
+            print("ERROR: failed to connect to internet to check for latest Keypatch version. Try again later.")
+
 
     # handler for Undo menu
     def undo(self):

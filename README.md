@@ -60,11 +60,11 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
         - Note that when size of the new code is different from the original code, Keypatch can pad until the next instruction boundary with NOPs opcode, so the code flow is intact. Uncheck the choice `NOPs padding until next instruction boundary` if this is undesired.
         - By default, Keypatch appends the modified instruction with the information of the original code (before being patched). Uncheck the choice `Save original instructions in IDA comment` to disable this feature.
     - By default, the modification you made is only recorded in the IDA database. To apply these changes to the original binary (thus overwrite it), choose menu `Edit | Patch program | Apply patches to input file`.
-- To revert (undo) the last patching, choose menu `Edit | Keypatch | Undo last patching`.
-
 <p align="center">
 <img src="screenshots/keypatch_patcher.png" height="360" />
 </p>
+
+- To revert (undo) the last patching, choose menu `Edit | Keypatch | Undo last patching`.
 
 - To do some code assembling (without overwritting binary), open **Keypatch Assembler** from menu `Edit | Keypatch | Assembler`.
     - Choose the architecture, address, endian mode & syntax, then type assembly instruction in the `Assembly` box.
@@ -74,6 +74,7 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 <img src="screenshots/keypatch_assembler.png" height="300" />
 </p>
 
+- To check for new version of Keypatch, choose menu `Edit | Keypatch | Check for update`.
 
 --------------
 
