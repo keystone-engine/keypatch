@@ -1131,7 +1131,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             if version_stable == VERSION:
                 idc.Warning("Your Keypatch is already on the latest stable version %s!" %VERSION)
             else:
-                idc.Warning("Your Keypatch is v%s. Download stable version %s from http://keystone-engine.org/keypatch!" %(VERSION, stable_version))
+                idc.Warning("Your Keypatch is v%s. Download stable version %s from http://keystone-engine.org/keypatch!" %(VERSION, version_stable))
         else:
             # fail to download
             idc.Warning("ERROR: failed to connect to internet. Try again later.")
