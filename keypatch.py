@@ -1084,7 +1084,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         # add a menu for Keypatch patcher & assembler
         menu_ctx = idaapi.add_menu_item("Edit/Keypatch/", "Patcher", "Ctrl-Alt-K", 1, self.patcher, None)
         if menu_ctx is not None:
-            idaapi.add_menu_item("Edit/Keypatch/", "Check for update", "", 1, self.updater, None)
+            idaapi.add_menu_item("Edit/Keypatch/", "Check for update ...", "", 1, self.updater, None)
             idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
             idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
             idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
