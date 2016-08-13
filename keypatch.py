@@ -19,7 +19,7 @@ import json
 from keystone import *
 
 
-VERSION = "1.0"
+VERSION = "1.1"
 
 
 MAX_INSTRUCTION_STRLEN = 64
