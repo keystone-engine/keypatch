@@ -546,7 +546,7 @@ class Keypatch_Asm:
             orig_data = ''
             invalid_value = False
 
-            while ea < (address+len):
+            while ea < (address + len):
                 if not invalid_value:
                     orig_byte = idc.Byte(ea)
 
@@ -563,7 +563,7 @@ class Keypatch_Asm:
                         print("Keypatch: FAILED to patch byte at 0x{:X} [0x{:X}]".format(ea, patch_byte))
                         break
                 ea += 1
-            return (ea-address, orig_data)
+            return (ea - address, orig_data)
 
         if self.check_address(address) != 1:
             # not a valid address
@@ -584,7 +584,6 @@ class Keypatch_Asm:
             print("Keypatch: no need to patch, same encoding data [{}] at 0x{:X}".format(to_hexstr(orig_encoding), address))
             return orig_len
 
-        patch_address = address
         orig_codes = []
 
         # for now, only support NOP padding on Intel CPU
@@ -595,21 +594,21 @@ class Keypatch_Asm:
                 patch_len = orig_len
                 patch_data = patch_data.ljust(patch_len, nop)
             elif patch_len > orig_len:
-                patch_end = patch_address + patch_len - 1
+                patch_end = address + patch_len - 1
                 ins_end = ItemEnd(patch_end)
                 padding_len = ins_end - patch_end
 
                 if padding_len > 0:
-                    patch_len = ins_end - patch_address
+                    patch_len = ins_end - address
                     patch_data = patch_data.ljust(patch_len, nop)
 
-        orig_codes = self.ida_get_disasms(patch_address, patch_address + patch_len)
+        orig_codes = self.ida_get_disasms(address, address + patch_len)
         orig_comment = idc.Comment(address)
 
         # save original function end to fix IDA re-analyze issue after patching
         orig_func_end = idc.GetFunctionAttr(address, idc.FUNCATTR_END)
 
-        (plen, p_orig_data) = _patch(patch_address, patch_data, patch_len)
+        (plen, p_orig_data) = _patch(address, patch_data, patch_len)
 
         if plen != patch_len:
             # patch failure
@@ -1031,9 +1030,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             print("Keypatch Patcher's shortcut key is CTRL+ALT+K")
             print("Keypatch Assembler is available from menu Edit | Keypatch | Assembler")
             print("Find more information about Keypatch at http://keystone-engine.org/keypatch")
-            
+
             self.load_configuration()
-            #
+
             print("=" * 80)    
             self.kp_asm = Keypatch_Asm()
 
