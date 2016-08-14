@@ -1049,6 +1049,51 @@ KEYPATCH:: Assembler
         return 1
 
 
+# About form
+class About_Form(idaapi.Form):
+    def __init__(self, version):
+        # create Assembler form
+        Form.__init__(self,
+            r"""KEYPATCH:: About
+
+            {FormChangeCb}
+            Keypatch IDA plugin v%s, using Keystone Engine v%s.
+            (c) Nguyen Anh Quynh + Thanh Nguyen, 2016.
+
+            Keypatch is released under the GPL v2.
+            Find more info at http://www.keystone-engine.org/keypatch
+            """ %(version, keystone.__version__), {
+            'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
+            })
+
+        self.Compile()
+
+    # callback to be executed when any form control changed
+    def OnFormChange(self, fid):
+        pass
+
+
+# Check-for-update form
+class Update_Form(idaapi.Form):
+    def __init__(self, version, message):
+        # create Assembler form
+        Form.__init__(self,
+            r"""KEYPATCH:: Check for update
+
+            {FormChangeCb}
+            Your Keypatch is v%s
+            %s
+            """ %(version, message), {
+            'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
+            })
+
+        self.Compile()
+
+    # callback to be executed when any form control changed
+    def OnFormChange(self, fid):
+        pass
+
+
 #--------------------------------------------------------------------------
 # Plugin
 #--------------------------------------------------------------------------
@@ -1084,6 +1129,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         # add a menu for Keypatch patcher & assembler
         menu_ctx = idaapi.add_menu_item("Edit/Keypatch/", "Patcher", "Ctrl-Alt-K", 1, self.patcher, None)
         if menu_ctx is not None:
+            idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
             idaapi.add_menu_item("Edit/Keypatch/", "Check for update ...", "", 1, self.updater, None)
             idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
             idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
@@ -1118,6 +1164,12 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
     def menu_null(self):
         pass
 
+    # handler for About menu
+    def about(self):
+        f = About_Form(VERSION)
+        f.Execute()
+        f.Free()
+
     # handler for Check-for-Update menu
     def updater(self):
         (r, content) = url_download(KP_GITHUB_URL)
@@ -1129,9 +1181,13 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
             # compare with the current version
             if version_stable == VERSION:
-                idc.Warning("Good, your Keypatch is already the latest stable version %s!" %VERSION)
+                f = Update_Form(VERSION, "Good, you are already on the latest stable version!")
+                f.Execute()
+                f.Free()
             else:
-                idc.Warning("Your Keypatch is v%s.\n\nDownload stable version %s from http://keystone-engine.org/keypatch" %(VERSION, version_stable))
+                f = Update_Form(VERSION, "Download latest stable version {} from http://keystone-engine.org/keypatch".format(version_stable))
+                f.Execute()
+                f.Free()
         else:
             # fail to download
             idc.Warning("ERROR: failed to connect to internet. Try again later.")
