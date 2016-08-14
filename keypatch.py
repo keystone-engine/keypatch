@@ -20,10 +20,6 @@ import json
 from keystone import *
 
 
-# latest stable version
-# this will be grepped for by "Check for update" menu
-VERSION_STABLE = "1.0"
-
 # bleeding-edge version
 VERSION = "1.1"
 
@@ -32,7 +28,7 @@ MAX_INSTRUCTION_STRLEN = 64
 MAX_ENCODING_LEN = 40
 MAX_ADDRESS_LEN = 40
 ENCODING_ERR_OUTPUT = "..."
-KP_GITHUB_URL = "https://raw.githubusercontent.com/keystone-engine/keypatch/master/keypatch.py"
+KP_GITHUB_VERSION = "https://raw.githubusercontent.com/keystone-engine/keypatch/master/VERSION_STABLE"
 KP_HOMEPAGE = "http://keystone-engine.org/keypatch"
 
 # Configuration file
@@ -1187,7 +1183,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
     # handler for Check-for-Update menu
     def updater(self):
-        (r, content) = url_download(KP_GITHUB_URL)
+        (r, content) = url_download(KP_GITHUB_VERSION)
         if r == 0:
             # find stable version
             sig = 'VERSION_STABLE = "'
@@ -1205,8 +1201,8 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 f.Free()
         else:
             # fail to download
-            idc.Warning("ERROR: failed to connect to internet. Try again later.")
-            print("ERROR: failed to connect to internet to check for latest Keypatch version. Try again later.")
+            idc.Warning("ERROR: failed to connect to internet (Github). Try again later.")
+            print("ERROR: failed to connect to Github to check for latest Keypatch version. Try again later.")
 
 
     # handler for Undo menu

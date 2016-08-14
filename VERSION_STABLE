@@ -1,0 +1,4 @@
+# latest stable version - be updated with every release
+# this will be grepped for by "Check for update" menu
+VERSION_STABLE = "1.0"
+
