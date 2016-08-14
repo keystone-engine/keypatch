@@ -33,6 +33,7 @@ MAX_ENCODING_LEN = 40
 MAX_ADDRESS_LEN = 40
 ENCODING_ERR_OUTPUT = "..."
 KP_GITHUB_URL = "https://raw.githubusercontent.com/keystone-engine/keypatch/master/keypatch.py"
+KP_HOMEPAGE = "http://keystone-engine.org/keypatch"
 
 # Configuration file
 KP_CFGFILE = os.path.join(idaapi.get_user_idadir(), "keypatch.cfg")
@@ -1054,7 +1055,9 @@ class About_Form(idaapi.Form):
     def __init__(self, version):
         # create Assembler form
         Form.__init__(self,
-            r"""KEYPATCH:: About
+            r"""STARTITEM 0
+BUTTON YES* Open Keypatch Website
+KEYPATCH:: About
 
             {FormChangeCb}
             Keypatch IDA plugin v%s, using Keystone Engine v%s.
@@ -1070,7 +1073,12 @@ class About_Form(idaapi.Form):
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        pass
+        if fid == -2:   # Goto homepage
+            import webbrowser
+            # open in a new tab, if possible
+            webbrowser.open(KP_HOMEPAGE, new = 2)
+
+        return 1
 
 
 # Check-for-update form
@@ -1078,7 +1086,9 @@ class Update_Form(idaapi.Form):
     def __init__(self, version, message):
         # create Assembler form
         Form.__init__(self,
-            r"""KEYPATCH:: Check for update
+            r"""STARTITEM 0
+BUTTON YES* Open Keypatch Website
+KEYPATCH:: Check for update
 
             {FormChangeCb}
             Your Keypatch is v%s
@@ -1091,7 +1101,12 @@ class Update_Form(idaapi.Form):
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        pass
+        if fid == -2:   # Goto homepage
+            import webbrowser
+            # open in a new tab, if possible
+            webbrowser.open(KP_HOMEPAGE, new = 2)
+
+        return 1
 
 
 #--------------------------------------------------------------------------
