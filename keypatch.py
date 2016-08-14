@@ -699,7 +699,11 @@ class Keypatch_Asm:
             else:
                 orig_comment = '{}\n'.format(orig_comment)
 
-            comments = "{}Keypatch modified this from:\n  {}".format(orig_comment, '\n  '.join(orig_asm))
+            if padding is not None:
+                # we are patching
+                comments = "{}Keypatch modified this from:\n  {}".format(orig_comment, '\n  '.join(orig_asm))
+            else:   # we are reverting
+                comments = "{}Keypatch reverted this from:\n  {}".format(orig_comment, '\n  '.join(orig_asm))
             idc.MakeComm(address, comments)
 
         return plen
@@ -1150,6 +1154,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             print("Keypatch registered IDA plugin {} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
             print("Keypatch is using Keystone v{}".format(keystone.__version__))
             print("Keypatch Patcher's shortcut key is CTRL+ALT+K")
+            print("To revert (undo) the last patching, choose menu Edit | Keypatch | Undo last patching")
             print("Keypatch Assembler is available from menu Edit | Keypatch | Assembler")
             print("Find more information about Keypatch at http://keystone-engine.org/keypatch")
 
