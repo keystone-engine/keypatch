@@ -1109,6 +1109,10 @@ KEYPATCH:: Check for update
         return 1
 
 
+# check if we already initialized Keypatch
+kp_setup = False
+
+
 #--------------------------------------------------------------------------
 # Plugin
 #--------------------------------------------------------------------------
@@ -1140,10 +1144,13 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         self.opts['c_opt_chk'] = self.opts.get('c_opt_chk', 3)
 
     def init(self):
+        global kp_setup
+
         self.opts = None
         # add a menu for Keypatch patcher & assembler
-        menu_ctx = idaapi.add_menu_item("Edit/Keypatch/", "Patcher", "Ctrl-Alt-K", 1, self.patcher, None)
-        if menu_ctx is not None:
+        if kp_setup == False:
+            kp_setup = True
+            idaapi.add_menu_item("Edit/Keypatch/", "Patcher", "Ctrl-Alt-K", 1, self.patcher, None)
             idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
             idaapi.add_menu_item("Edit/Keypatch/", "Check for update ...", "", 1, self.updater, None)
             idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
