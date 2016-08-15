@@ -966,7 +966,7 @@ class Keypatch_Assembler(Keypatch_Form):
         # create Assembler form
         Form.__init__(self,
             r"""STARTITEM {id:c_assembly}
-BUTTON YES* Close
+BUTTON YES NONE
 KEYPATCH:: Assembler
 
             {FormChangeCb}
