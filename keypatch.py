@@ -39,7 +39,7 @@ patch_info = []
 
 
 def to_hexstr(buf, sep=' '):
-    return sep.join("{:02x}".format(ord(c)) for c in buf).upper()
+    return sep.join("{0:02x}".format(ord(c)) for c in buf).upper()
 
 
 # download a file from @url, then return (result, file-content)
@@ -235,12 +235,12 @@ class Keypatch_Asm:
                 if t in (idaapi.NT_SEG, idaapi.NT_NONE):
                     continue
 
-                _op = _op.replace(sym, '0x{:X}'.format(v))
+                _op = _op.replace(sym, '0x{0:X}'.format(v))
 
             return _op
 
         if self.check_address(address) == 0:
-            print("Keypatch: WARNING: invalid input address {}".format(address))
+            print("Keypatch: WARNING: invalid input address {0}".format(address))
             return assembly
 
         # for now, we only support IDA name resolve for X86, ARM, ARM64, MIPS, PPC, SPARC
@@ -265,7 +265,7 @@ class Keypatch_Asm:
 
             opers[idx] = ''.join(_op)
 
-        asm = "{} {}".format(mnem, ','.join(opers))
+        asm = "{0} {1}".format(mnem, ','.join(opers))
         return asm
 
     # return bytes of instruction or data
@@ -378,14 +378,14 @@ class Keypatch_Asm:
                     parts[0] = ''
 
                 if '[' not in parts[2]:
-                    parts[2] = '[{}]'.format(parts[2])
+                    parts[2] = '[{0}]'.format(parts[2])
 
                 o = ''.join(parts)
 
                 if 'ptr ' not in o:
                     dtyp_name = self.get_op_dtype_name(i)
                     if dtyp_name != None:
-                        o = "{} ptr {}".format(dtyp_name, o)
+                        o = "{0} ptr {1}".format(dtyp_name, o)
 
             opers.append(o)
             i += 1
@@ -393,7 +393,7 @@ class Keypatch_Asm:
         asm = mnem
         for o in opers:
             if o != '':
-                asm = "{} {},".format(asm, o)
+                asm = "{0} {1},".format(asm, o)
 
         asm = asm.strip(',')
         return asm
@@ -565,9 +565,9 @@ class Keypatch_Asm:
             encoding, count = ks.asm(fix_ida_syntax(assembly), address)
         except KsError as e:
             # keep the below code for debugging
-            #print("Keypatch Err: {}".format(e))
-            #print("Original asm: {}".format(assembly))
-            #print("Fixed up asm: {}".format(fix_ida_syntax(assembly)))
+            #print("Keypatch Err: {0}".format(e))
+            #print("Original asm: {0}".format(assembly))
+            #print("Fixed up asm: {0}".format(fix_ida_syntax(assembly)))
             encoding, count = None, 0
 
         return (encoding, count)
@@ -592,7 +592,7 @@ class Keypatch_Asm:
                     orig_byte = idc.Byte(ea)
 
                     if not idc.hasValue(idc.GetFlags(ea)):
-                        print("Keypatch: WARNING: 0x{:X} has no defined value. ".format(ea))
+                        print("Keypatch: WARNING: 0x{0:X} has no defined value. ".format(ea))
                         invalid_value = True
                     else:
                         orig_data += chr(orig_byte)
@@ -601,7 +601,7 @@ class Keypatch_Asm:
                 if patch_byte != orig_byte:
                     # patch one byte
                     if idaapi.patch_byte(ea, patch_byte) != 1:
-                        print("Keypatch: FAILED to patch byte at 0x{:X} [0x{:X}]".format(ea, patch_byte))
+                        print("Keypatch: FAILED to patch byte at 0x{0:X} [0x{1:X}]".format(ea, patch_byte))
                         break
                 ea += 1
             return (ea - address, orig_data)
@@ -626,7 +626,7 @@ class Keypatch_Asm:
             patch_data = ''.join(chr(c) for c in encoding)
 
             if patch_data == orig_encoding:
-                print("Keypatch: no need to patch, same encoding data [{}] at 0x{:X}".format(to_hexstr(orig_encoding), address))
+                print("Keypatch: no need to patch, same encoding data [{0}] at 0x{1:X}".format(to_hexstr(orig_encoding), address))
                 return orig_len
 
             # for now, only support NOP padding on Intel CPU
@@ -665,21 +665,21 @@ class Keypatch_Asm:
                 # revert the changes
                 (rlen, _) = _patch(address, p_orig_data, plen)
                 if rlen == plen:
-                    print("Keypatch: successfully reverted changes of {:d} byte(s) at 0x{:X} [{}]".format(
+                    print("Keypatch: successfully reverted changes of {0:d} byte(s) at 0x{1:X} [{2}]".format(
                                         plen, address, to_hexstr(p_orig_data)))
                 else:
-                    print("Keypatch: FAILED to revert changes of {:d} byte(s) at 0x{:X} [{}]".format(
+                    print("Keypatch: FAILED to revert changes of {0:d} byte(s) at 0x{1:X} [{2}]".format(
                                         plen, address, to_hexstr(p_orig_data)))
 
             return -1
 
         if padding is not None:
             # we are patching via Patcher
-            print("Keypatch: successfully patched {:d} byte(s) at 0x{:X} from [{}] to [{}]".format(plen,
+            print("Keypatch: successfully patched {0:d} byte(s) at 0x{1:X} from [{2}] to [{3}]".format(plen,
                                         address, to_hexstr(p_orig_data), to_hexstr(patch_data)))
         else:
             # we are reverting (undo) the last patching
-            print("Keypatch: successfully reverted {:d} byte(s) at 0x{:X} from [{}] to [{}]".format(plen,
+            print("Keypatch: successfully reverted {0:d} byte(s) at 0x{1:X} from [{2}] to [{3}]".format(plen,
                                         address, to_hexstr(p_orig_data), to_hexstr(patch_data)))
 
         # only save this patching if we do not "undo"
@@ -697,13 +697,13 @@ class Keypatch_Asm:
             if orig_comment == None:
                 orig_comment = ''
             else:
-                orig_comment = '{}\n'.format(orig_comment)
+                orig_comment = '{0}\n'.format(orig_comment)
 
             if padding is not None:
                 # we are patching
-                comments = "{}Keypatch modified this from:\n  {}".format(orig_comment, '\n  '.join(orig_asm))
+                comments = "{0}Keypatch modified this from:\n  {1}".format(orig_comment, '\n  '.join(orig_asm))
             else:   # we are reverting
-                comments = "{}Keypatch reverted this from:\n  {}".format(orig_comment, '\n  '.join(orig_asm))
+                comments = "{0}Keypatch reverted this from:\n  {1}".format(orig_comment, '\n  '.join(orig_asm))
             idc.MakeComm(address, comments)
 
         return plen
@@ -1158,8 +1158,8 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
             idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
             print("=" * 80)
-            print("Keypatch registered IDA plugin {} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
-            print("Keypatch is using Keystone v{}".format(keystone.__version__))
+            print("Keypatch registered IDA plugin {0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
+            print("Keypatch is using Keystone v{0}".format(keystone.__version__))
             print("Keypatch Patcher's shortcut key is CTRL+ALT+K")
             print("To revert (undo) the last patching, choose menu Edit | Keypatch | Undo last patching")
             print("Keypatch Assembler is available from menu Edit | Keypatch | Assembler")
@@ -1208,7 +1208,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 f.Execute()
                 f.Free()
             else:
-                f = Update_Form(VERSION, "Download latest stable version {} from http://keystone-engine.org/keypatch".format(version_stable))
+                f = Update_Form(VERSION, "Download latest stable version {0} from http://keystone-engine.org/keypatch".format(version_stable))
                 f.Execute()
                 f.Free()
         else:
@@ -1265,7 +1265,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
                     raw_assembly = self.kp_asm.ida_resolve(assembly, address)
 
-                    print("Keypatch: attempt to modify \"{}\" at 0x{:X} to \"{}\"".format(
+                    print("Keypatch: attempt to modify \"{0}\" at 0x{1:X} to \"{2}\"".format(
                             self.kp_asm.ida_get_disasm(address), address, assembly))
 
                     length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding, comment)
@@ -1277,15 +1277,15 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     else:
                         init_assembly = f.c_assembly.value
                         if length == 0:
-                            idc.Warning("ERROR: invalid assembly [{}]".format(assembly))
+                            idc.Warning("ERROR: invalid assembly [{0}]".format(assembly))
                         elif length == -1:
-                            idc.Warning("ERROR: failed to patch binary at 0x{:X}!".format(address))
+                            idc.Warning("ERROR: failed to patch binary at 0x{0:X}!".format(address))
                         elif length == -2:
-                            idc.Warning("ERROR: can't read original data at 0x{:X}, try again".format(address))
+                            idc.Warning("ERROR: can't read original data at 0x{0:X}, try again".format(address))
 
 
                 except KsError as e:
-                    print("Keypatch Err: {}".format(e))
+                    print("Keypatch Err: {0}".format(e))
             else:   # Cancel
                 f.Free()
                 break
