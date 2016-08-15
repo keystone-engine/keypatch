@@ -1109,6 +1109,74 @@ KEYPATCH:: Check for update
         return 1
 
 
+class Binary_Fill_NOPs(idaapi.action_handler_t):
+    def __init__(self):
+        idaapi.action_handler_t.__init__(self)
+        self.fill_value = 0x90  # nop opcode
+
+    @classmethod
+    def get_name(cls):
+        return cls.__name__
+
+    def get_label(self):
+        return 'Fill with NOPs'
+
+    @classmethod
+    def register(cls):
+        instance = cls()
+        return idaapi.register_action(idaapi.action_desc_t(
+            cls.get_name(),  # Name. Acts as an ID. Must be unique.
+            instance.get_label(),  # Label. That's what users see.
+            instance  # Handler. Called when activated, and for updating
+        ))
+
+    @classmethod
+    def unregister(cls):
+        """Unregister the action.
+        After unregistering the class cannot be used.
+        """
+        idaapi.unregister_action(cls.get_name())
+
+    def activate(self, ctx):
+        selection, start_ea, end_ea = idaapi.read_selection()
+        if selection:
+            print("Keypatch: Fill data from 0x{:08x} to 0x{:08x}".format(start_ea, end_ea))
+            for ea in range(start_ea, end_ea):
+                idaapi.patch_byte(ea, self.fill_value)
+        else:
+            print("Keypatch: Select a range of code.")
+        return 1
+
+    def update(self, ctx):
+        if ctx.form_type == idaapi.BWN_DISASM:
+            return idaapi.AST_ENABLE_FOR_FORM
+        else:
+            return idaapi.AST_DISABLE_FOR_FORM
+
+
+class Binary_Fill_NULLs(Binary_Fill_NOPs):
+    def __init__(self):
+        Binary_Fill_NOPs.__init__(self)
+        self.fill_value = 0x00
+
+    def get_label(self):
+        return "Fill with 00's"
+
+
+class Hooks(idaapi.UI_Hooks):
+    def finish_populating_tform_popup(self, form, popup):
+        # We'll add our action to all "IDA View-*"s.
+        # If we wanted to add it only to "IDA View-A", we could
+        # also discriminate on the widget's title:
+        #
+        #  if idaapi.get_tform_title(form) == "IDA View-A":
+        #      ...
+        #
+        if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
+            idaapi.attach_action_to_popup(form, popup, Binary_Fill_NOPs.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, Binary_Fill_NULLs.get_name(), 'Keypatch/')
+
+
 #--------------------------------------------------------------------------
 # Plugin
 #--------------------------------------------------------------------------
@@ -1140,6 +1208,13 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         self.opts['c_opt_chk'] = self.opts.get('c_opt_chk', 3)
 
     def init(self):
+        # patch binary with NOP or NULL bytes
+        Binary_Fill_NOPs.register()
+        Binary_Fill_NULLs.register()
+        # setup context menu
+        self.hooks = Hooks()
+        self.hooks.hook()
+
         self.opts = None
         # add a menu for Keypatch patcher & assembler
         menu_ctx = idaapi.add_menu_item("Edit/Keypatch/", "Patcher", "Ctrl-Alt-K", 1, self.patcher, None)
@@ -1166,6 +1241,12 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         return idaapi.PLUGIN_KEEP
 
     def term(self):
+        if self.hooks is not None:
+            self.hooks.unhook()
+            self.hooks = None
+            Binary_Fill_NOPs.unregister()
+            Binary_Fill_NULLs.unregister()
+
         if self.opts is None:
             return
         #save configuration to file
