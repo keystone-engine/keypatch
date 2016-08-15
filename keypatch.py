@@ -1007,7 +1007,7 @@ KEYPATCH:: Assembler
         # only Assembler mode allows to select arch+mode
         arch_id = self.GetControlValue(self.c_arch)
         (arch, mode) = self.kp_asm.get_arch_by_idx(arch_id)
-		
+
         # assembly is focused
         self.SetFocusedField(self.c_assembly)
 
@@ -1173,8 +1173,12 @@ class Hooks(idaapi.UI_Hooks):
         #      ...
         #
         if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
-            idaapi.attach_action_to_popup(form, popup, Binary_Fill_NOPs.get_name(), 'Keypatch/')
             idaapi.attach_action_to_popup(form, popup, Binary_Fill_NULLs.get_name(), 'Keypatch/')
+            arch, _ = Keypatch_Asm.get_hardware_mode()
+            # for now, only support NOP on Intel CPU
+            if arch == KS_ARCH_X86:
+                idaapi.attach_action_to_popup(form, popup, Binary_Fill_NOPs.get_name(), 'Keypatch/')
+            
 
 
 #--------------------------------------------------------------------------
@@ -1189,7 +1193,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
 
     def load_configuration(self):
-        # default 
+        # default
         self.opts = {}
 
         # load configuration from file
@@ -1209,8 +1213,12 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
     def init(self):
         # patch binary with NOP or NULL bytes
-        Binary_Fill_NOPs.register()
         Binary_Fill_NULLs.register()
+        arch, _ = Keypatch_Asm.get_hardware_mode()
+        # for now, only support NOP on Intel CPU
+        if arch == KS_ARCH_X86:
+            Binary_Fill_NOPs.register()
+
         # setup context menu
         self.hooks = Hooks()
         self.hooks.hook()
@@ -1235,7 +1243,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
             self.load_configuration()
 
-            print("=" * 80)    
+            print("=" * 80)
             self.kp_asm = Keypatch_Asm()
 
         return idaapi.PLUGIN_KEEP
@@ -1244,7 +1252,10 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         if self.hooks is not None:
             self.hooks.unhook()
             self.hooks = None
-            Binary_Fill_NOPs.unregister()
+            arch, _ = Keypatch_Asm.get_hardware_mode()
+            # for now, only support NOP on Intel CPU 
+            if arch == KS_ARCH_X86:
+                Binary_Fill_NOPs.unregister()
             Binary_Fill_NULLs.unregister()
 
         if self.opts is None:
