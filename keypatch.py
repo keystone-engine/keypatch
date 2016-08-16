@@ -1213,8 +1213,8 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 f.Free()
         else:
             # fail to download
-            idc.Warning("ERROR: failed to connect to internet (Github). Try again later.")
-            print("ERROR: failed to connect to Github to check for latest Keypatch version. Try again later.")
+            idc.Warning("ERROR: Keypatch failed to connect to internet (Github). Try again later.")
+            print("ERROR: Keypatch failed to connect to Github to check for latest update. Try again later.")
 
 
     # handler for Undo menu
@@ -1222,7 +1222,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         global patch_info
         if len(patch_info) == 0:
             # TODO: disable Undo menu?
-            idc.Warning("ERROR: no more patching to undo!")
+            idc.Warning("ERROR: Keypatch already got to the last undo patching!")
         else:
             (address, assembly, p_orig_data) = patch_info[-1]
             self.kp_asm.patch_code(address, None, None, None, None, [assembly], p_orig_data)
@@ -1239,7 +1239,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
     def patcher(self):
         # be sure that this arch is supported by Keystone
         if self.kp_asm.arch is None:
-            idc.Warning("ERROR: this architecture is unsupported by Keystone, quit!")
+            idc.Warning("ERROR: Keypatch cannot handle this architecture (unsupported by Keystone), quit!")
             return
 
         address = idc.ScreenEA()
@@ -1277,11 +1277,11 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     else:
                         init_assembly = f.c_assembly.value
                         if length == 0:
-                            idc.Warning("ERROR: invalid assembly [{0}]".format(assembly))
+                            idc.Warning("ERROR: Keypatch found invalid assembly [{0}]".format(assembly))
                         elif length == -1:
-                            idc.Warning("ERROR: failed to patch binary at 0x{0:X}!".format(address))
+                            idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(address))
                         elif length == -2:
-                            idc.Warning("ERROR: can't read original data at 0x{0:X}, try again".format(address))
+                            idc.Warning("ERROR: Keypatch can't read original data at 0x{0:X}, try again".format(address))
 
 
                 except KsError as e:
