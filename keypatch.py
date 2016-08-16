@@ -1119,8 +1119,8 @@ kp_initialized = False
 class Keypatch_Plugin_t(idaapi.plugin_t):
     comment = "Keypatch plugin for IDA Pro (using Keystone framework)"
     help = "Find more information on Keypatch at http://keystone-engine.org/keypatch"
-    wanted_name = "Keypatch patcher (CTRL+ALT+K)"
-    wanted_hotkey = ""
+    wanted_name = "Keypatch Patcher"
+    wanted_hotkey = "Ctrl-Alt-K"
     flags = idaapi.PLUGIN_KEEP
 
 
@@ -1150,7 +1150,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         if kp_initialized == False:
             kp_initialized = True
             # add Keypatch menu
-            idaapi.add_menu_item("Edit/Keypatch/", "Patcher", "Ctrl-Alt-K", 1, self.patcher, None)
+            idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (CTRL+ALT+K)", "", 1, self.patcher, None)
             idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
             idaapi.add_menu_item("Edit/Keypatch/", "Check for update ...", "", 1, self.updater, None)
             idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
