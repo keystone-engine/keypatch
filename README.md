@@ -131,11 +131,13 @@ After having multilib dependencies, run the following commands in the source dir
 $ mkdir build
 $ cd build
 $ ../make-share.sh lib32 lib_only
-$ cd bindings/python
-$ sudo make install
 ```
+Then copy Python bindings to IDA's Python directory `cp -r bindings/python/keystone <IDA_DIR>/python/` (for example /opt/IDAPro6.4/python/).
+Following that,  you will also need to copy distutils from your distro's Python to IDA's Python `cp -r /usr/lib/python2.7/distutils <IDA_DIR>/python/`
 
-Finally, copy the 32-bit binaries at `build/llvm/lib/libkeystone.so.*` to the Python directory of IDA Pro, for example at `/opt/IDAPro6.4/python/`.
+Finally, copy the 32-bit binaries at `build/llvm/lib/libkeystone.so.*` to the Python directory of IDA Pro, for example at `/opt/IDAPro6.4/python/lib/python2.7/dist-packages/keystone/` (you will need to do `mkdir -p /opt/IDAPro6.4/python/lib/python2.7/dist-packages/keystone/`). Job done!
+
+These complicated workarounds are necessary because IDA in Linux 64 bit doesn't use the system's Python.
 
 Done? Now go back to [section 2](#2-install) & install Keypatch for IDA Pro. Enjoy!
 
