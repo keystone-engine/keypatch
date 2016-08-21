@@ -1134,9 +1134,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             self.opts = json.load(f)
             f.close()
         except IOError:
-            print("Keypatch: Use default configuration.")
+            print("Keypatch: use default configuration.")
         except Exception as e:
-            print("Keypatch: Exception: %s" % (str(e)))
+            print("Keypatch: exception: %s" % (str(e)))
 
         # use default values if not defined in config file
         self.opts['c_opt_padding'] = self.opts.get('c_opt_padding', 1)
@@ -1191,9 +1191,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         try:
             json.dump(self.opts, open(KP_CFGFILE, "wt"))
         except Exception as e:
-            print("Keypatch: Exception: %s" % (str(e)))
+            print("Keypatch: exception: %s" % (str(e)))
         else:
-            print("Keypatch: Configuration is saved to %s" % (KP_CFGFILE))
+            print("Keypatch: configuration is saved to %s" % (KP_CFGFILE))
 
     # null handler
     def menu_null(self):
@@ -1294,7 +1294,6 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                             idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(address))
                         elif length == -2:
                             idc.Warning("ERROR: Keypatch can't read original data at 0x{0:X}, try again".format(address))
-
 
                 except KsError as e:
                     print("Keypatch Err: {0}".format(e))
