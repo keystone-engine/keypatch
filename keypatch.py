@@ -1166,7 +1166,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update ...", "", 0, self.updater, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Assembler", "", 0, self.assembler, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl+Alt+K)", 0, self.patcher, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl+Alt+K)", "", 0, self.patcher, None)
 
             print("=" * 80)
             print("Keypatch registered IDA plugin {0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
