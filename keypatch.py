@@ -1158,9 +1158,10 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
-            else:
+            elif idaapi.IDA_SDK_VERSION < 680:
                 # older IDAPython (such as in IDAPro 6.6) does add new submenu.
                 # in this case, put Keypatch menu in menu Edit \ Patch program
+                # not sure about v6.7, so to be safe we just check against v6.8
                 idaapi.add_menu_item("Edit/Patch program/", "-", "", 0, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: About", "", 0, self.about, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update ...", "", 0, self.updater, None)
