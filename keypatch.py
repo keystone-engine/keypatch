@@ -1150,13 +1150,24 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         if kp_initialized == False:
             kp_initialized = True
             # add Keypatch menu
-            idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (CTRL+ALT+K)", "", 1, self.patcher, None)
-            idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
-            idaapi.add_menu_item("Edit/Keypatch/", "Check for update ...", "", 1, self.updater, None)
-            idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
-            idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
-            idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
-            idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
+            menu = idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (CTRL+ALT+K)", "", 1, self.patcher, None)
+            if menu is not None:
+                idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Check for update ...", "", 1, self.updater, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
+            else:
+                # older IDAPython (such as in IDAPro 6.6) does add new submenu.
+                # in this case, put Keypatch menu in menu Edit \ Patch program
+                idaapi.add_menu_item("Edit/Patch program/", "-", "", 0, self.menu_null, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: About", "", 0, self.about, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update ...", "", 0, self.updater, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Assembler", "", 0, self.assembler, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl+Alt+K)", 0, self.patcher, None)
+
             print("=" * 80)
             print("Keypatch registered IDA plugin {0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
             print("Keypatch is using Keystone v{0}".format(keystone.__version__))
