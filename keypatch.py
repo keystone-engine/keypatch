@@ -1418,7 +1418,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             self.load_configuration()
 
         init_assembly = None
-        f = Keypatch_FillRange(self.kp_asm, addr_begin, addr_end, assembly=init_assembly, opts=self.opts)
+        f = Keypatch_FillRange(self.kp_asm, addr_begin, addr_end - 1, assembly=init_assembly, opts=self.opts)
         ok = f.Execute()
         if ok == 1:
             try:
@@ -1433,7 +1433,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 comment = (self.opts.get("c_opt_comment", 0) != 0)
 
                 print("Keypatch: attempt to fill range [0x{0:X}:0x{1:X}] with \"{2}\"".format(
-                    addr_begin, addr_end, assembly))
+                    addr_begin, addr_end - 1, assembly))
 
                 raw_assembly = self.kp_asm.ida_resolve(assembly, addr_begin)
 
