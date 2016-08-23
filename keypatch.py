@@ -866,6 +866,96 @@ class Keypatch_Form(idaapi.Form):
         return 1
 
 
+# Fill Range form
+class Keypatch_FillRange(Keypatch_Form):
+    def __init__(self, kp_asm, addr_begin, addr_end, assembly=None, opts=None):
+        self.setup(kp_asm, addr_begin, assembly)
+        self.addr_end = addr_end
+
+        # create Patcher form
+        Form.__init__(self,
+            r"""STARTITEM {id:c_assembly}
+BUTTON YES* Patch
+KEYPATCH:: Fill Range
+
+            {FormChangeCb}
+            <Endian     :{c_endian}>
+            <~S~yntax   :{c_syntax}>
+            <Start      :{c_addr}>
+            <End        :{c_addr_end}>
+            <Size       :{c_size}>
+            <~A~ssembly   :{c_assembly}>
+             <-   Fixup :{c_raw_assembly}>
+             <-   Encode:{c_encoding}>
+             <-   Size  :{c_encoding_len}>
+            <~N~OPs padding until next instruction boundary:{c_opt_padding}>
+            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>{c_opt_chk}>
+            """, {
+            'c_endian': Form.DropdownListControl(
+                          items = self.kp_asm.endian_lists.keys(),
+                          readonly = True,
+                          selval = self.endian_id),
+            'c_addr': Form.NumericInput(value=addr_begin, swidth=MAX_ADDRESS_LEN, tp=Form.FT_ADDR),
+            'c_addr_end': Form.NumericInput(value=addr_end, swidth=MAX_ADDRESS_LEN, tp=Form.FT_ADDR),
+            'c_assembly': Form.StringInput(value=self.asm[:MAX_INSTRUCTION_STRLEN], width=MAX_INSTRUCTION_STRLEN),
+            'c_size': Form.NumericInput(value=addr_end - addr_begin, swidth=8, tp=Form.FT_DEC),
+            'c_raw_assembly': Form.StringInput(value='', width=MAX_INSTRUCTION_STRLEN),
+            'c_encoding': Form.StringInput(value='', width=MAX_ENCODING_LEN),
+            'c_encoding_len': Form.NumericInput(value=0, swidth=8, tp=Form.FT_DEC),
+            'c_syntax': Form.DropdownListControl(
+                          items = self.syntax_keys,
+                          readonly = True,
+                          selval = self.syntax_id),
+            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', ''), value=opts['c_opt_chk']),
+            'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
+            })
+
+        self.Compile()
+
+    # get Patcher options
+    def get_opts(self, name=None):
+        names = self.c_opt_chk.children_names
+        val = self.c_opt_chk.value
+        opts = {}
+        for i in range(len(names)):
+            opts[names[i]] = val & (2**i)
+
+        if name != None:
+            opts[name] = val
+
+        return opts
+
+    # callback to be executed when any form control changed
+    def OnFormChange(self, fid):
+        (arch, mode) = (self.kp_asm.arch, self.kp_asm.mode)
+        # assembly is focused
+        self.SetFocusedField(self.c_assembly)
+
+        # make address, arch, endian and syntax read-only in patch_mode mode
+        self.EnableField(self.c_size, False)
+        self.EnableField(self.c_endian, False)
+        self.EnableField(self.c_addr, False)
+        self.EnableField(self.c_addr_end, False)
+
+        if arch == KS_ARCH_X86:
+            # do not show Endian control
+            self.ShowField(self.c_endian, False)
+            # allow to choose Syntax
+            self.ShowField(self.c_syntax, True)
+            self.ShowField(self.c_opt_padding, True)
+        else:   # do not show Syntax control for non-X86 mode
+            self.ShowField(self.c_syntax, False)
+            # for now, we do not support padding for non-X86 archs
+            self.ShowField(self.c_opt_padding, False)
+            #self.EnableField(self.c_opt_padding, False)
+
+        # update other controls & Encoding with live assembling
+        self.update_controls(arch, mode)
+
+        return 1
+
+
+
 # Patcher form
 class Keypatch_Patcher(Keypatch_Form):
     def __init__(self, kp_asm, address, assembly=None, opts=None):
@@ -1158,6 +1248,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Fill range", "", 1, self.fill_range, None)
             elif idaapi.IDA_SDK_VERSION < 680:
                 # older IDAPython (such as in IDAPro 6.6) does add new submenu.
                 # in this case, put Keypatch menu in menu Edit \ Patch program
@@ -1167,6 +1258,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update ...", "", 0, self.updater, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Assembler", "", 0, self.assembler, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill range", "", 0, self.fill_range, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl+Alt+K)", "", 0, self.patcher, None)
 
             print("=" * 80)
@@ -1301,6 +1393,65 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 f.Free()
                 break
             f.Free()
+
+
+    # handler for Fill Range menu
+    def fill_range(self):
+        # be sure that this arch is supported by Keystone
+        if self.kp_asm.arch is None:
+            idc.Warning("ERROR: Keypatch cannot handle this architecture (unsupported by Keystone), quit!")
+            return
+
+        selection, addr_begin, addr_end = idaapi.read_selection()
+        if not selection:
+            idc.Warning("ERROR: Keypatch requires a range to be selected for fill in, try again")
+            return
+        #print("Keypatch: Fill data from 0x{:08x} to 0x{:08x}".format(start_ea, end_ea))
+        #for ea in range(start_ea, end_ea):
+        #    idaapi.patch_byte(ea, self.fill_value)
+        #else:
+
+        if self.opts is None:
+            self.load_configuration()
+
+        init_assembly = None
+        f = Keypatch_FillRange(self.kp_asm, addr_begin, addr_end, assembly=init_assembly, opts=self.opts)
+        ok = f.Execute()
+        if ok == 1:
+            try:
+                syntax = None
+                if f.kp_asm.arch == KS_ARCH_X86:
+                    syntax_id = f.c_syntax.value
+                    syntax = self.kp_asm.get_syntax_by_idx(syntax_id)
+
+                assembly = f.c_assembly.value
+                self.opts = f.get_opts('c_opt_chk')
+                padding = (self.opts.get("c_opt_padding", 0) != 0)
+                comment = (self.opts.get("c_opt_comment", 0) != 0)
+
+                raw_assembly = self.kp_asm.ida_resolve(assembly, address)
+
+                print("Keypatch: attempt to fill range [0x{0:X}:0x{1:X}] with \"{2}\"".format(
+                        addr_begin, addr_end, assembly))
+
+                length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding, comment)
+
+                if length > 0:
+                    # update start address pointing to the next instruction
+                    init_assembly = None
+                    address += length
+                else:
+                    init_assembly = f.c_assembly.value
+                    if length == 0:
+                        idc.Warning("ERROR: Keypatch found invalid assembly [{0}]".format(assembly))
+                    elif length == -1:
+                        idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(address))
+                    elif length == -2:
+                        idc.Warning("ERROR: Keypatch can't read original data at 0x{0:X}, try again".format(address))
+
+            except KsError as e:
+                print("Keypatch Err: {0}".format(e))
+        f.Free()
 
 
     def run(self, arg):
