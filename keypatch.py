@@ -21,7 +21,7 @@ from keystone import *
 
 
 # bleeding-edge version
-VERSION = "1.1"
+VERSION = "1.2"
 
 
 MAX_INSTRUCTION_STRLEN = 64
