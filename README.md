@@ -61,12 +61,12 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
         - By default, Keypatch appends the modified instruction with the information of the original code (before being patched). Uncheck the choice `Save original instructions in IDA comment` to disable this feature.
     - By default, the modification you made is only recorded in the IDA database. To apply these changes to the original binary (thus overwrite it), choose menu `Edit | Patch program | Apply patches to input file`.
 <p align="center">
-<img src="screenshots/keypatch_patcher.png" height="360" />
+<img src="screenshots/keypatch_patcher.png" height="460" />
 </p>
 
 - To fill a range of code with an instruction, choose menu `Edit | Keypatch | Fill range`.
 <p align="center">
-<img src="screenshots/keypatch_filling.png" height="360" />
+<img src="screenshots/keypatch_filling.png" height="460" />
 </p>
 
 - To revert (undo) the last patching, choose menu `Edit | Keypatch | Undo last patching`.
@@ -76,7 +76,7 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
     - Keypatch would *automatically* update the encoding in the `Encode` box while you are typing, without waiting for `ENTER` keystroke.
 
 <p align="center">
-<img src="screenshots/keypatch_assembler.png" height="300" />
+<img src="screenshots/keypatch_assembler.png" height="360" />
 </p>
 
 - To check for new version of Keypatch, choose menu `Edit | Keypatch | Check for update`.
