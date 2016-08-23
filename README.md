@@ -64,6 +64,11 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 <img src="screenshots/keypatch_patcher.png" height="360" />
 </p>
 
+- To fill a range of code with an instruction, choose menu `Edit | Keypatch | Fill range`.
+<p align="center">
+<img src="screenshots/keypatch_filling.png" height="360" />
+</p>
+
 - To revert (undo) the last patching, choose menu `Edit | Keypatch | Undo last patching`.
 
 - To do some code assembling (without overwritting binary), open **Keypatch Assembler** from menu `Edit | Keypatch | Assembler`.
