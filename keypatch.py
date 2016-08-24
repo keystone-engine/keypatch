@@ -896,7 +896,7 @@ KEYPATCH:: Fill Range
                           readonly = True,
                           selval = self.endian_id),
             'c_addr': Form.NumericInput(value=addr_begin, swidth=MAX_ADDRESS_LEN, tp=Form.FT_ADDR),
-            'c_addr_end': Form.NumericInput(value=addr_end, swidth=MAX_ADDRESS_LEN, tp=Form.FT_ADDR),
+            'c_addr_end': Form.NumericInput(value=addr_end - 1, swidth=MAX_ADDRESS_LEN, tp=Form.FT_ADDR),
             'c_assembly': Form.StringInput(value=self.asm[:MAX_INSTRUCTION_STRLEN], width=MAX_INSTRUCTION_STRLEN),
             'c_size': Form.NumericInput(value=addr_end - addr_begin, swidth=8, tp=Form.FT_DEC),
             'c_raw_assembly': Form.StringInput(value='', width=MAX_INSTRUCTION_STRLEN),
@@ -1199,6 +1199,60 @@ KEYPATCH:: Check for update
         return 1
 
 
+# adapted from pull request #7 by @quangnh89
+class Kp_Fill_Range(idaapi.action_handler_t):
+    def __init__(self):
+        idaapi.action_handler_t.__init__(self)
+
+    @classmethod
+    def get_name(self):
+        return self.__name__
+
+    def get_label(self):
+        return 'Fill range'
+
+    @classmethod
+    def register(self, plugin):
+        self.plugin = plugin
+        instance = self()
+        return idaapi.register_action(idaapi.action_desc_t(
+            self.get_name(),  # Name. Acts as an ID. Must be unique.
+            instance.get_label(),  # Label. That's what users see.
+            instance  # Handler. Called when activated, and for updating
+        ))
+
+    @classmethod
+    def unregister(self):
+        """Unregister the action.
+        After unregistering the class cannot be used.
+        """
+        idaapi.unregister_action(self.get_name())
+
+    def activate(self, ctx):
+        self.plugin.fill_range()
+        return 1
+
+    def update(self, ctx):
+        if ctx.form_type == idaapi.BWN_DISASM:
+            return idaapi.AST_ENABLE_FOR_FORM
+        else:
+            return idaapi.AST_DISABLE_FOR_FORM
+
+
+# menu context class
+class Hooks(idaapi.UI_Hooks):
+    def finish_populating_tform_popup(self, form, popup):
+        # We'll add our action to all "IDA View-*"s.
+        # If we wanted to add it only to "IDA View-A", we could
+        # also discriminate on the widget's title:
+        #
+        #  if idaapi.get_tform_title(form) == "IDA View-A":
+        #      ...
+        #
+        if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
+            idaapi.attach_action_to_popup(form, popup, Kp_Fill_Range.get_name(), 'Keypatch/')
+
+
 # check if we already initialized Keypatch
 kp_initialized = False
 
@@ -1235,6 +1289,13 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
     def init(self):
         global kp_initialized
+
+        # register menu context handler
+        Kp_Fill_Range.register(self)
+
+        # setup context menu
+        self.hooks = Hooks()
+        self.hooks.hook()
 
         self.opts = None
         if kp_initialized == False:
@@ -1277,6 +1338,10 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         return idaapi.PLUGIN_KEEP
 
     def term(self):
+        if self.hooks is not None:
+            self.hooks.unhook()
+            self.hooks = None
+
         if self.opts is None:
             return
         #save configuration to file
@@ -1418,7 +1483,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             self.load_configuration()
 
         init_assembly = None
-        f = Keypatch_FillRange(self.kp_asm, addr_begin, addr_end - 1, assembly=init_assembly, opts=self.opts)
+        f = Keypatch_FillRange(self.kp_asm, addr_begin, addr_end, assembly=init_assembly, opts=self.opts)
         ok = f.Execute()
         if ok == 1:
             try:
@@ -1454,7 +1519,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     # calculate filling data
                     encode_chr = ''.join(chr(c) for c in encoding)
                     while True:
-                        if len(patch_data) + len(encode_chr) < size:
+                        if len(patch_data) + len(encode_chr) <= size:
                             patch_data = patch_data + encode_chr
                             assembly_new += [assembly.strip()]
                         else:
