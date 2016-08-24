@@ -64,7 +64,7 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 <img src="screenshots/keypatch_patcher.png" height="460" />
 </p>
 
-- To fill a range of code with an instruction, choose menu `Edit | Keypatch | Fill range`.
+- To fill a range of code with an instruction, select the range, then either press hotkey `CTRL+ALT+K`, or choose menu `Edit | Keypatch | Fill range`.
 <p align="center">
 <img src="screenshots/keypatch_filling.png" height="460" />
 </p>

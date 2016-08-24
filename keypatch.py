@@ -1471,6 +1471,11 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             idc.Warning("ERROR: Keypatch cannot handle this architecture (unsupported by Keystone), quit!")
             return
 
+        selection, addr_begin, addr_end = idaapi.read_selection()
+        if selection:
+            # call Fill Range function on this selected code
+            return self.fill_range()
+
         address = idc.ScreenEA()
 
         if self.opts is None:
@@ -1530,10 +1535,6 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         if not selection:
             idc.Warning("ERROR: Keypatch requires a range to be selected for fill in, try again")
             return
-        #print("Keypatch: Fill data from 0x{:08x} to 0x{:08x}".format(start_ea, end_ea))
-        #for ea in range(start_ea, end_ea):
-        #    idaapi.patch_byte(ea, self.fill_value)
-        #else:
 
         if self.opts is None:
             self.load_configuration()
