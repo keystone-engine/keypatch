@@ -1285,7 +1285,7 @@ class Kp_MC_About(Kp_Menu_Context):
         return 1
 
 
-# menu context class
+# hooks for popup menu
 class Hooks(idaapi.UI_Hooks):
     def finish_populating_tform_popup(self, form, popup):
         # We'll add our action to all "IDA View-*"s.
@@ -1341,7 +1341,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
     def init(self):
         global kp_initialized
 
-        # register menu context handlers
+        # register popup menu handlers
         Kp_MC_Patcher.register(self, "Patcher    (Ctrl+Alt+K)")
         Kp_MC_Fill_Range.register(self, "Fill range")
         Kp_MC_Undo.register(self, "Undo last patching")
@@ -1349,7 +1349,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         Kp_MC_Updater.register(self, "Check for update")
         Kp_MC_About.register(self, "About")
 
-        # setup context menu
+        # setup popup menu
         self.hooks = Hooks()
         self.hooks.hook()
 
