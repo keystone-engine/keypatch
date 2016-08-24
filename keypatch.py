@@ -1200,7 +1200,7 @@ KEYPATCH:: Check for update
 
 
 # adapted from pull request #7 by @quangnh89
-class Kp_Fill_Range(idaapi.action_handler_t):
+class Kp_Menu_Context(idaapi.action_handler_t):
     def __init__(self):
         idaapi.action_handler_t.__init__(self)
 
@@ -1208,12 +1208,14 @@ class Kp_Fill_Range(idaapi.action_handler_t):
     def get_name(self):
         return self.__name__
 
+    @classmethod
     def get_label(self):
-        return 'Fill range'
+        return self.label
 
     @classmethod
-    def register(self, plugin):
+    def register(self, plugin, label):
         self.plugin = plugin
+        self.label = label
         instance = self()
         return idaapi.register_action(idaapi.action_desc_t(
             self.get_name(),  # Name. Acts as an ID. Must be unique.
@@ -1228,15 +1230,59 @@ class Kp_Fill_Range(idaapi.action_handler_t):
         """
         idaapi.unregister_action(self.get_name())
 
+    @classmethod
     def activate(self, ctx):
-        self.plugin.fill_range()
+        # dummy method
         return 1
 
+    @classmethod
     def update(self, ctx):
         if ctx.form_type == idaapi.BWN_DISASM:
             return idaapi.AST_ENABLE_FOR_FORM
         else:
             return idaapi.AST_DISABLE_FOR_FORM
+
+
+# context menu for Patcher
+class Kp_MC_Patcher(Kp_Menu_Context):
+    def activate(self, ctx):
+        self.plugin.patcher()
+        return 1
+
+
+# context menu for Fill Range
+class Kp_MC_Fill_Range(Kp_Menu_Context):
+    def activate(self, ctx):
+        self.plugin.fill_range()
+        return 1
+
+
+# context menu for Undo
+class Kp_MC_Undo(Kp_Menu_Context):
+    def activate(self, ctx):
+        self.plugin.undo()
+        return 1
+
+
+# context menu for Assembler
+class Kp_MC_Assembler(Kp_Menu_Context):
+    def activate(self, ctx):
+        self.plugin.assembler()
+        return 1
+
+
+# context menu for Check Update
+class Kp_MC_Updater(Kp_Menu_Context):
+    def activate(self, ctx):
+        self.plugin.updater()
+        return 1
+
+
+# context menu for About
+class Kp_MC_About(Kp_Menu_Context):
+    def activate(self, ctx):
+        self.plugin.about()
+        return 1
 
 
 # menu context class
@@ -1250,7 +1296,12 @@ class Hooks(idaapi.UI_Hooks):
         #      ...
         #
         if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
-            idaapi.attach_action_to_popup(form, popup, Kp_Fill_Range.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, Kp_MC_Assembler.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
 
 
 # check if we already initialized Keypatch
@@ -1290,8 +1341,13 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
     def init(self):
         global kp_initialized
 
-        # register menu context handler
-        Kp_Fill_Range.register(self)
+        # register menu context handlers
+        Kp_MC_Patcher.register(self, "Patcher    (Ctrl+Alt+K)")
+        Kp_MC_Fill_Range.register(self, "Fill range")
+        Kp_MC_Undo.register(self, "Undo last patching")
+        Kp_MC_Assembler.register(self, "Assembler")
+        Kp_MC_Updater.register(self, "Check for update")
+        Kp_MC_About.register(self, "About")
 
         # setup context menu
         self.hooks = Hooks()
@@ -1304,7 +1360,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             menu = idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (CTRL+ALT+K)", "", 1, self.patcher, None)
             if menu is not None:
                 idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "Check for update ...", "", 1, self.updater, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Check for update", "", 1, self.updater, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
@@ -1316,7 +1372,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 # not sure about v6.7, so to be safe we just check against v6.8
                 idaapi.add_menu_item("Edit/Patch program/", "-", "", 0, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: About", "", 0, self.about, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update ...", "", 0, self.updater, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update", "", 0, self.updater, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Assembler", "", 0, self.assembler, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill range", "", 0, self.fill_range, None)
