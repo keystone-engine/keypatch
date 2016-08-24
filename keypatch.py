@@ -6,9 +6,12 @@
 # Keypatch is released under the GPL v2. See COPYING for more information.
 # Find docs & latest version at http://www.keystone-engine.org/keypatch
 
-# This IDA plugin includes 2 tools inside: Patcher & Assembler.
-# Access to both tools via menu "Edit | Keypatch"
-# Hotkey to activate Keypatch Patcher is CTRL+ALT+K
+# This IDA plugin includes 3 tools inside: Patcher, Fill range & Assembler.
+# Access to these tools via menu "Edit | Keypatch", or via right-click popup menu "Keypatch".
+
+# Hotkey CTRL+ALT+K opens either Patcher or "Fill range" window, depending on context.
+#  - If there is no code selection, hotkey opens Patcher dialog
+#  - If a range of code is selected, hotkey opens "Fill range" dialog
 
 # To revert (undo) the last patching, choose menu "Edit | Keypatch | Undo last patching".
 # To check for update version, choose menu "Edit | Keypatch | Check for update".
