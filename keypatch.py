@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-# Keypatch IDA Plugin, powered by Keystone Engine (www.keytone-engine.org).
+# Keypatch IDA Plugin, powered by Keystone Engine (http://www.keystone-engine.org).
 # By Nguyen Anh Quynh & Thanh Nguyen, 2016.
 
 # Keypatch is released under the GPL v2. See COPYING for more information.
-# Find docs & latest version at http://www.keystone-engine.org/keypatch
+# Find docs & latest version at http://keystone-engine.org/keypatch
 
 # This IDA plugin includes 3 tools inside: Patcher, Fill range & Assembler.
 # Access to these tools via menu "Edit | Keypatch", or via right-click popup menu "Keypatch".
