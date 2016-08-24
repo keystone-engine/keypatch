@@ -81,6 +81,12 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 
 - To check for new version of Keypatch, choose menu `Edit | Keypatch | Check for update`.
 
+- At any time, you can access to all the above functionalities of Keypatch just by right-click in IDA screen, and choose from the popup menu.
+
+<p align="center">
+<img src="screenshots/keypatch_menucontext.png" height="260" />
+</p>
+
 --------------
 
 ### 4. Contact
