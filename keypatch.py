@@ -1299,7 +1299,9 @@ class Hooks(idaapi.UI_Hooks):
             idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
             idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
             idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
             idaapi.attach_action_to_popup(form, popup, Kp_MC_Assembler.get_name(), 'Keypatch/')
+            idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
             idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
             idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
 
