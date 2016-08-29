@@ -1669,7 +1669,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                         patch_info.append((addr_begin, '\n  '.join(assembly_new), p_orig_data, new_patch_comment))
                 else:   # invalid assembly/hexcode
                     idc.Warning("ERROR: Keypatch failed to process this input.")
-                    print("ERROR: Keypatch failed to process this input '%s'".format(assembly))
+                    print("ERROR: Keypatch failed to process this input '{0}'".format(assembly))
             except KsError as e:
                 print("Keypatch Error: {0}".format(e))
 
