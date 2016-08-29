@@ -737,6 +737,7 @@ class Keypatch_Asm:
                 # save this patching for future "undo"
                 patch_info.append((address, assembly, p_orig_data, new_patch_comment))
             elif patch_comment is not None:   # we are reverting (undo)
+                # clean previous IDA comment by replacing it with ''
                 new_comment = orig_comment.replace(patch_comment, '')
 
             if new_comment is not None:
