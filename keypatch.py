@@ -63,7 +63,7 @@ def convert_hexstr(code):
 
     # single-digit hexcode?
     if len(code) == 1 and ((code >= '0' and code <= '9') or (code >= 'a' and code <= 'f')):
-        # stick 0 in front (so A --> 0A)
+        # stick 0 in front (so 'a' --> '0a')
         code = '0' + code
 
     # odd-length is invalid
