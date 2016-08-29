@@ -853,6 +853,7 @@ class Keypatch_Form(idaapi.Form):
 
             if encoding is None:
                 self.SetControlValue(self.c_encoding, ENCODING_ERR_OUTPUT)
+                self.SetControlValue(self.c_encoding_len, 0)
                 return False
             else:
                 text = ""
@@ -904,7 +905,7 @@ class Keypatch_FillRange(Keypatch_Form):
         self.setup(kp_asm, addr_begin, assembly)
         self.addr_end = addr_end
 
-        # create Patcher form
+        # create FillRange form
         Form.__init__(self,
             r"""STARTITEM {id:c_assembly}
 BUTTON YES* Patch
@@ -944,7 +945,7 @@ KEYPATCH:: Fill Range
 
         self.Compile()
 
-    # get Patcher options
+    # get FillRange options
     def get_opts(self, name=None):
         names = self.c_opt_chk.children_names
         val = self.c_opt_chk.value
