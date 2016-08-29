@@ -47,6 +47,38 @@ def to_hexstr(buf, sep=' '):
     return sep.join("{0:02x}".format(ord(c)) for c in buf).upper()
 
 
+# return a normalized code, or None if input is invalid
+def convert_hexstr(code):
+    # normalize code
+    code = code.lower()
+    code = code.replace(' ', '')    # remove space
+    code = code.replace('h', '')    # remove trailing 'h' in 90h
+    code = code.replace('0x', '')   # remove 0x
+    code = code.replace('\\x', '')  # remove \x
+    code = code.replace(',', '')    # remove ,
+    code = code.replace(';', '')    # remove ;
+    code = code.replace('"', '')    # remove "
+    code = code.replace("'", '')    # remove '
+    code = code.replace("+", '')    # remove +
+
+    # single-digit hexcode?
+    if len(code) == 1 and ((code >= '0' and code <= '9') or (code >= 'a' and code <= 'f')):
+        # stick 0 in front (so A --> 0A)
+        code = '0' + code
+
+    # odd-length is invalid
+    if len(code) % 2 != 0:
+        return None
+
+    try:
+        hex_data = code.decode('hex')
+        # we want a list of int
+        return [ord(i) for i in hex_data]
+    except:
+        # invalid hex
+        return None
+
+
 # download a file from @url, then return (result, file-content)
 # return (0, content) on success, or ({1|2}, None) on download failure
 def url_download(url):
@@ -151,7 +183,6 @@ class Keypatch_Asm:
     # return Keystone arch & mode (with endianess included)
     @staticmethod
     def get_hardware_mode():
-
         (arch, mode) = (None, None)
 
         # heuristically detect hardware setup
@@ -302,7 +333,6 @@ class Keypatch_Asm:
     # return bytes of instruction or data
     # return None on failure
     def ida_get_item(self, address, hex_output=False):
-
         if self.check_address(address) != 1:
             # not a valid address
             return (None, 0)
@@ -760,7 +790,6 @@ class Keypatch_Asm:
 class Keypatch_Form(idaapi.Form):
     # prepare for form initializing
     def setup(self, kp_asm, address, assembly=None):
-
         self.kp_asm = kp_asm
         self.address = address
 
@@ -956,7 +985,6 @@ KEYPATCH:: Fill Range
         self.update_controls(arch, mode)
 
         return 1
-
 
 
 # Patcher form
@@ -1566,6 +1594,10 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
                 (encoding, _) =  f.kp_asm.assemble(raw_assembly, addr_begin, arch=f.kp_asm.arch,
                                                 mode=f.kp_asm.mode, syntax=syntax)
+                if encoding is None:
+                    # try to convert hexcode string
+                    encoding = convert_hexstr(assembly)
+
                 if encoding is not None:
                     # save original assembly code before overwritting them
                     orig_asm = self.kp_asm.ida_get_disasm_range(addr_begin, addr_end)
@@ -1627,6 +1659,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                         # we are patching
                         comments = "{0}Keypatch modified this from:\n  {1}".format(orig_comment, '\n  '.join(orig_asm))
                         idc.MakeComm(addr_begin, comments)
+                else:   # invalid assembly/hexcode
+                    idc.Warning("ERROR: Keypatch failed to process this input.")
+                    print("ERROR: Keypatch failed to process this input '%s'".format(assembly))
             except KsError as e:
                 print("Keypatch Error: {0}".format(e))
 
