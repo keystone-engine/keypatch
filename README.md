@@ -1,7 +1,7 @@
 Keypatch
 ========
 
-Keypatch is a IDA Pro plugin for [Keystone Assembler Engine](http://keystone-engine.org).
+Keypatch is a plugin of [IDA Pro](https://www.hex-rays.com/products/ida/) for [Keystone Assembler Engine](http://keystone-engine.org).
 
 Keypatch consists of 3 tools inside.
 
