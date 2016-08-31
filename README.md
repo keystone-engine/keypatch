@@ -3,9 +3,9 @@ Keypatch
 
 Keypatch is a IDA Pro plugin for [Keystone Assembler Engine](http://keystone-engine.org).
 
-Keypatch consists of 2 tools inside.
+Keypatch consists of 3 tools inside.
 
-- **Patcher**: this allows you to type in assembly to directly patch your binary.
+- **Patcher** & **Fill range**: this allows you to type in assembly to directly patch your binary.
 - **Assembler**: this interactive tool let you enter assembly & get back instruction encoding.
 
 Keypatch is confirmed to work on IDA Pro version 6.4, 6.6, 6.8, 6.9, 6.95 but should work flawlessly on older versions.
