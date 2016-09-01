@@ -117,6 +117,12 @@ Install the core & Python module of Keystone with the following command:
 $ sudo pip install keystone-engine
 ```
 
+In case IDA still complains "ImportError: No module named keystone" when Keypatch is loading, then do the following step to copy Keystone Python binding to IDA directory. (replace `6.8` with your actual IDA version)
+
+```
+$ sudo cp -r /Library/Python/2.7/site-packages/keystone /Applications/IDA\ Pro\ 6.8/idaq.app/Contents/MacOS/python
+```
+
 #### A3. Linux
 
 First of all, be sure that your machine already have Cmake installed. On Ubuntu, you can install Cmake with:
