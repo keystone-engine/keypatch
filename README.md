@@ -68,7 +68,7 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 - To fill a range of code with an instruction, select the range, then either press hotkey `CTRL+ALT+K`, or choose menu `Edit | Keypatch | Fill range`.
     - In the `Assembly` box, you can either enter assembly code, or raw hexcode. Some examples of acceptable raw hexcode are `90`, `aa bb`, `0xAA, 0xBB`.
 <p align="center">
-<img src="screenshots/keypatch_filling.png" height="460" />
+<img src="screenshots/keypatch_fillrange.png" height="460" />
 </p>
 
 - To revert (undo) the last patching, choose menu `Edit | Keypatch | Undo last patching`.
