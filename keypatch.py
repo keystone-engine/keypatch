@@ -1369,7 +1369,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         except IOError:
             print("Keypatch: use default configuration.")
         except Exception as e:
-            print("Keypatch: exception: %s" % (str(e)))
+            print("Keypatch: exception: {0}".format(str(e)))
 
         # use default values if not defined in config file
         self.opts['c_opt_padding'] = self.opts.get('c_opt_padding', 1)
@@ -1403,7 +1403,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
-                idaapi.add_menu_item("Edit/Keypatch/",    "Fill range", "", 1, self.fill_range, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Fill range", "", 1, self.fill_range, None)
             elif idaapi.IDA_SDK_VERSION < 680:
                 # older IDAPython (such as in IDAPro 6.6) does add new submenu.
                 # in this case, put Keypatch menu in menu Edit \ Patch program
@@ -1442,9 +1442,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         try:
             json.dump(self.opts, open(KP_CFGFILE, "wt"))
         except Exception as e:
-            print("Keypatch: exception: %s" % (str(e)))
+            print("Keypatch: exception: {0}".format(str(e)))
         else:
-            print("Keypatch: configuration is saved to %s" % (KP_CFGFILE))
+            print("Keypatch: configuration is saved to {0}".format(KP_CFGFILE))
 
     # null handler
     def menu_null(self):
