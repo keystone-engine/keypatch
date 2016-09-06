@@ -905,18 +905,17 @@ class Keypatch_Form(idaapi.Form):
             #self.EnableField(self.c_opt_padding, False)
 
         if fid == self.c_opt_reanalyze.id:
-            global kp_show_reanalyze_warning
-            if kp_show_reanalyze_warning:
+            global kp_show_reanalyze_warning, kp_reanalyze
+            kp_reanalyze = (self.GetControlValue(self.c_opt_reanalyze) != 0)
+            if kp_show_reanalyze_warning and (not kp_reanalyze):
                 reanalyze = self.GetControlValue(self.c_opt_reanalyze)
-                #return: -1:cancel,0-no,1-ok
+                #return: -1=cancel, 0=no, 1=ok
                 if reanalyze == 0:
                     if 1 == idaapi.askyn_c(0, 'Re-analyze after patching is to keep code in a good shape.\nDisable this option may silently break something.\nDo you want to continue?'):
                         kp_show_reanalyze_warning = False
                     else:
                         self.SetControlValue(self.c_opt_reanalyze, 4)
 
-            global kp_reanalyze
-            kp_reanalyze = (self.GetControlValue(self.c_opt_reanalyze) != 0)
 
 
         # update other controls & Encoding with live assembling
