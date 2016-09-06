@@ -52,6 +52,8 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 
 ### 3. Usage
 
+- For a quick tutorial, see [TUTORIAL.md](TUTORIAL.md). For a complete description of all of the features of Keypatch, keep reading.
+
 - To patch your binary, press hotkey `CTRL+ALT+K` inside IDA to open **Keypatch Patcher** dialog.
     - The original assembly, encode & instruction size will be displayed in 3 controls at the top part of the form.
     - Choose the syntax, type new assembly instruction in the `Assembly` box (you can use IDA symbols).
