@@ -20,7 +20,7 @@ See [README.md](README.md) for a complete guideline of all features of Keypatch.
   the "Fill Range" dialog. Note that the same hotkey would open the Patcher window
   if you do not select a range of code, as in tutorial 1 above.
 - Enter a new assembly instruction to the Assembly control. Alternatively, you can
-  also enter a string in hexcode format, such as `0x90`, `90, 91`, `AAh`.
+  also enter a string in hexcode format, such as "0x90", "90, 91", "AAh", etc.
 - Click button `Patch` to fill the selected range with the input above.
 
 
