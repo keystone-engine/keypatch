@@ -715,11 +715,12 @@ class Keypatch_Asm:
             print("Keypatch: successfully reverted {0:d} byte(s) at 0x{1:X} from [{2}] to [{3}]".format(plen,
                                         address, to_hexstr(p_orig_data), to_hexstr(patch_data)))
 
-        # ask IDA to re-analyze the patched area
-        idaapi.analyze_area(address, orig_func_end)
+        if kp_reanalyze:
+            # ask IDA to re-analyze the patched area
+            idaapi.analyze_area(address, orig_func_end)
 
-        # try to fix IDA function re-analyze issue after patching
-        idaapi.func_setend(address, orig_func_end)
+            # try to fix IDA function re-analyze issue after patching
+            idaapi.func_setend(address, orig_func_end)
 
         new_patch_comment = None
         if save_origcode:
@@ -926,7 +927,8 @@ KEYPATCH:: Fill Range
              <-   Encode:{c_encoding}>
              <-   Size  :{c_encoding_len}>
             <~N~OPs padding until next instruction boundary:{c_opt_padding}>
-            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>{c_opt_chk}>
+            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>
+            <~R~e-analyze the patched area after patching:{c_opt_reanalyze}>{c_opt_chk}>
             """, {
             'c_endian': Form.DropdownListControl(
                           items = self.kp_asm.endian_lists.keys(),
@@ -943,7 +945,7 @@ KEYPATCH:: Fill Range
                           items = self.syntax_keys,
                           readonly = True,
                           selval = self.syntax_id),
-            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', ''), value=opts['c_opt_chk']),
+            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', 'c_opt_reanalyze', ''), value=opts['c_opt_chk']),
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
@@ -986,6 +988,21 @@ KEYPATCH:: Fill Range
             self.ShowField(self.c_opt_padding, False)
             #self.EnableField(self.c_opt_padding, False)
 
+        if fid == self.c_opt_reanalyze.id:
+            global kp_show_reanalyze_warning
+            if kp_show_reanalyze_warning:
+                #return: -1:cancel,0-no,1-ok
+                reanalyze = self.GetControlValue(self.c_opt_reanalyze)
+                if reanalyze == 0:
+                    if 1 == idaapi.askyn_c(0, 'Disable this feature will make something fail. Do you want to continue?'):
+                        kp_show_reanalyze_warning = False
+                    else:
+                        self.SetControlValue(self.c_opt_reanalyze, 4)
+
+            global kp_reanalyze
+            kp_reanalyze = (self.GetControlValue(self.c_opt_reanalyze) != 0)
+
+
         # update other controls & Encoding with live assembling
         self.update_controls(arch, mode)
 
@@ -1015,7 +1032,8 @@ KEYPATCH:: Patcher
              <-   Encode:{c_encoding}>
              <-   Size  :{c_encoding_len}>
             <~N~OPs padding until next instruction boundary:{c_opt_padding}>
-            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>{c_opt_chk}>
+            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>
+            <~R~e-analyze the patched area after patching:{c_opt_reanalyze}>{c_opt_chk}>
             """, {
             'c_endian': Form.DropdownListControl(
                           items = self.kp_asm.endian_lists.keys(),
@@ -1033,7 +1051,7 @@ KEYPATCH:: Patcher
                           items = self.syntax_keys,
                           readonly = True,
                           selval = self.syntax_id),
-            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', ''), value=opts['c_opt_chk']),
+            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', 'c_opt_reanalyze', ''), value=opts['c_opt_chk']),
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
@@ -1077,6 +1095,20 @@ KEYPATCH:: Patcher
             # for now, we do not support padding for non-X86 archs
             self.ShowField(self.c_opt_padding, False)
             #self.EnableField(self.c_opt_padding, False)
+
+        if fid == self.c_opt_reanalyze.id:
+            global kp_show_reanalyze_warning
+            if kp_show_reanalyze_warning:
+                #return: -1:cancel,0-no,1-ok
+                reanalyze = self.GetControlValue(self.c_opt_reanalyze)
+                if reanalyze == 0:
+                    if 1 == idaapi.askyn_c(0, 'Disable this feature will make something fail. Do you want to continue?'):
+                        kp_show_reanalyze_warning = False
+                    else:
+                        self.SetControlValue(self.c_opt_reanalyze, 4)
+
+            global kp_reanalyze
+            kp_reanalyze = (self.GetControlValue(self.c_opt_reanalyze) != 0)
 
         # update other controls & Encoding with live assembling
         self.update_controls(arch, mode)
@@ -1133,7 +1165,7 @@ KEYPATCH:: Assembler
         # only Assembler mode allows to select arch+mode
         arch_id = self.GetControlValue(self.c_arch)
         (arch, mode) = self.kp_asm.get_arch_by_idx(arch_id)
-		
+
         # assembly is focused
         self.SetFocusedField(self.c_assembly)
 
@@ -1186,12 +1218,12 @@ BUTTON YES* Open Keypatch Website
 KEYPATCH:: About
 
             {FormChangeCb}
-            Keypatch IDA plugin v%s, using Keystone Engine v%s.
+            Keypatch IDA plugin v{0}, using Keystone Engine v{1}.
             (c) Nguyen Anh Quynh + Thanh Nguyen, 2016.
 
             Keypatch is released under the GPL v2.
             Find more info at http://www.keystone-engine.org/keypatch
-            """ %(version, keystone.__version__), {
+            """.format(version, keystone.__version__), {
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
@@ -1217,9 +1249,9 @@ BUTTON YES* Open Keypatch Website
 KEYPATCH:: Check for update
 
             {FormChangeCb}
-            Your Keypatch is v%s
-            %s
-            """ %(version, message), {
+            Your Keypatch is v{0}
+            {1}
+            """.format(version, message), {
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
@@ -1344,6 +1376,8 @@ class Hooks(idaapi.UI_Hooks):
 
 # check if we already initialized Keypatch
 kp_initialized = False
+kp_show_reanalyze_warning = True
+kp_reanalyze = True
 
 
 #--------------------------------------------------------------------------
@@ -1358,7 +1392,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
 
     def load_configuration(self):
-        # default 
+        # default
         self.opts = {}
 
         # load configuration from file
@@ -1369,12 +1403,13 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         except IOError:
             print("Keypatch: use default configuration.")
         except Exception as e:
-            print("Keypatch: exception: %s" % (str(e)))
+            print("Keypatch: exception: {0}".format(str(e)))
 
         # use default values if not defined in config file
         self.opts['c_opt_padding'] = self.opts.get('c_opt_padding', 1)
         self.opts['c_opt_comment'] = self.opts.get('c_opt_comment', 2)
-        self.opts['c_opt_chk'] = self.opts.get('c_opt_chk', 3)
+        self.opts['c_opt_reanalyze'] = self.opts.get('c_opt_reanalyze', 4)
+        self.opts['c_opt_chk'] = self.opts.get('c_opt_chk', 7)
 
     def init(self):
         global kp_initialized
@@ -1403,7 +1438,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
-                idaapi.add_menu_item("Edit/Keypatch/",    "Fill range", "", 1, self.fill_range, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Fill range", "", 1, self.fill_range, None)
             elif idaapi.IDA_SDK_VERSION < 680:
                 # older IDAPython (such as in IDAPro 6.6) does add new submenu.
                 # in this case, put Keypatch menu in menu Edit \ Patch program
@@ -1426,7 +1461,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
             self.load_configuration()
 
-            print("=" * 80)    
+            print("=" * 80)
             self.kp_asm = Keypatch_Asm()
 
         return idaapi.PLUGIN_KEEP
@@ -1442,9 +1477,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         try:
             json.dump(self.opts, open(KP_CFGFILE, "wt"))
         except Exception as e:
-            print("Keypatch: exception: %s" % (str(e)))
+            print("Keypatch: exception: {0}".format(str(e)))
         else:
-            print("Keypatch: configuration is saved to %s" % (KP_CFGFILE))
+            print("Keypatch: configuration is saved to {0}".format(KP_CFGFILE))
 
     # null handler
     def menu_null(self):
@@ -1646,11 +1681,12 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                         print("Keypatch: successfully filled range [0x{0:X}:0x{1:X}] with \"{2}\", replacing \"{3}\"".format(
                                 addr_begin, addr_end - 1, assembly, '; '.join(orig_asm)))
 
-                        # ask IDA to re-analyze the patched area
-                        idaapi.analyze_area(addr_begin, orig_func_end)
+                        if kp_reanalyze:
+                            # ask IDA to re-analyze the patched area
+                            idaapi.analyze_area(addr_begin, orig_func_end)
 
-                        # try to fix IDA function re-analyze issue after patching
-                        idaapi.func_setend(addr_begin, orig_func_end)
+                            # try to fix IDA function re-analyze issue after patching
+                            idaapi.func_setend(addr_begin, orig_func_end)
 
                         new_patch_comment = None
 
