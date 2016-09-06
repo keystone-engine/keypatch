@@ -1,7 +1,7 @@
 Keypatch Tutorial
 =================
 
-This is a quick tutorial for new users of Keypatch.
+This is a quick tutorial for new users of [Keypatch](http://keystone-engine.org/keypatch).
 You are supposed to already have Keypatch installed for your IDA Pro.
 
 See [README.md](README.md) for a complete guideline of Keypatch.
