@@ -137,7 +137,6 @@ def patch_raw(address, patch_data, len):
 
 ## Main Keypatch class
 class Keypatch_Asm:
-
     # supported architectures
     arch_lists = {
         "X86 16-bit": (KS_ARCH_X86, KS_MODE_16),                # X86 16-bit
@@ -884,6 +883,47 @@ class Keypatch_Form(idaapi.Form):
     def OnFormChange(self, fid):
         return 1
 
+    # update Patcher & Fillrange controls
+    def update_patchform(self, fid):
+        self.EnableField(self.c_endian, False)
+        self.EnableField(self.c_addr, False)
+
+        (arch, mode) = (self.kp_asm.arch, self.kp_asm.mode)
+        # assembly is focused
+        self.SetFocusedField(self.c_assembly)
+
+        if arch == KS_ARCH_X86:
+            # do not show Endian control
+            self.ShowField(self.c_endian, False)
+            # allow to choose Syntax
+            self.ShowField(self.c_syntax, True)
+            self.ShowField(self.c_opt_padding, True)
+        else:   # do not show Syntax control for non-X86 mode
+            self.ShowField(self.c_syntax, False)
+            # for now, we do not support padding for non-X86 archs
+            self.ShowField(self.c_opt_padding, False)
+            #self.EnableField(self.c_opt_padding, False)
+
+        if fid == self.c_opt_reanalyze.id:
+            global kp_show_reanalyze_warning
+            if kp_show_reanalyze_warning:
+                #return: -1:cancel,0-no,1-ok
+                reanalyze = self.GetControlValue(self.c_opt_reanalyze)
+                if reanalyze == 0:
+                    if 1 == idaapi.askyn_c(0, 'Disable this feature will make something fail. Do you want to continue?'):
+                        kp_show_reanalyze_warning = False
+                    else:
+                        self.SetControlValue(self.c_opt_reanalyze, 4)
+
+            global kp_reanalyze
+            kp_reanalyze = (self.GetControlValue(self.c_opt_reanalyze) != 0)
+
+
+        # update other controls & Encoding with live assembling
+        self.update_controls(arch, mode)
+
+        return 1
+
     # update some controls - including Encoding control
     def update_controls(self, arch, mode):
         # Fixup & Encoding-len are read-only controls
@@ -966,47 +1006,11 @@ KEYPATCH:: Fill Range
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        (arch, mode) = (self.kp_asm.arch, self.kp_asm.mode)
-        # assembly is focused
-        self.SetFocusedField(self.c_assembly)
-
         # make address, arch, endian and syntax read-only in patch_mode mode
         self.EnableField(self.c_size, False)
-        self.EnableField(self.c_endian, False)
-        self.EnableField(self.c_addr, False)
         self.EnableField(self.c_addr_end, False)
 
-        if arch == KS_ARCH_X86:
-            # do not show Endian control
-            self.ShowField(self.c_endian, False)
-            # allow to choose Syntax
-            self.ShowField(self.c_syntax, True)
-            self.ShowField(self.c_opt_padding, True)
-        else:   # do not show Syntax control for non-X86 mode
-            self.ShowField(self.c_syntax, False)
-            # for now, we do not support padding for non-X86 archs
-            self.ShowField(self.c_opt_padding, False)
-            #self.EnableField(self.c_opt_padding, False)
-
-        if fid == self.c_opt_reanalyze.id:
-            global kp_show_reanalyze_warning
-            if kp_show_reanalyze_warning:
-                #return: -1:cancel,0-no,1-ok
-                reanalyze = self.GetControlValue(self.c_opt_reanalyze)
-                if reanalyze == 0:
-                    if 1 == idaapi.askyn_c(0, 'Disable this feature will make something fail. Do you want to continue?'):
-                        kp_show_reanalyze_warning = False
-                    else:
-                        self.SetControlValue(self.c_opt_reanalyze, 4)
-
-            global kp_reanalyze
-            kp_reanalyze = (self.GetControlValue(self.c_opt_reanalyze) != 0)
-
-
-        # update other controls & Encoding with live assembling
-        self.update_controls(arch, mode)
-
-        return 1
+        return self.update_patchform(self, fid)
 
 
 # Patcher form
@@ -1072,48 +1076,12 @@ KEYPATCH:: Patcher
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        (arch, mode) = (self.kp_asm.arch, self.kp_asm.mode)
-        # assembly is focused
-        self.SetFocusedField(self.c_assembly)
-
         # make address, arch, endian and syntax read-only in patch_mode mode
         self.EnableField(self.c_orig_assembly, False)
         self.EnableField(self.c_orig_encoding, False)
         self.EnableField(self.c_orig_len, False)
 
-        self.EnableField(self.c_endian, False)
-        self.EnableField(self.c_addr, False)
-
-        if arch == KS_ARCH_X86:
-            # do not show Endian control
-            self.ShowField(self.c_endian, False)
-            # allow to choose Syntax
-            self.ShowField(self.c_syntax, True)
-            self.ShowField(self.c_opt_padding, True)
-        else:   # do not show Syntax control for non-X86 mode
-            self.ShowField(self.c_syntax, False)
-            # for now, we do not support padding for non-X86 archs
-            self.ShowField(self.c_opt_padding, False)
-            #self.EnableField(self.c_opt_padding, False)
-
-        if fid == self.c_opt_reanalyze.id:
-            global kp_show_reanalyze_warning
-            if kp_show_reanalyze_warning:
-                #return: -1:cancel,0-no,1-ok
-                reanalyze = self.GetControlValue(self.c_opt_reanalyze)
-                if reanalyze == 0:
-                    if 1 == idaapi.askyn_c(0, 'Disable this feature will make something fail. Do you want to continue?'):
-                        kp_show_reanalyze_warning = False
-                    else:
-                        self.SetControlValue(self.c_opt_reanalyze, 4)
-
-            global kp_reanalyze
-            kp_reanalyze = (self.GetControlValue(self.c_opt_reanalyze) != 0)
-
-        # update other controls & Encoding with live assembling
-        self.update_controls(arch, mode)
-
-        return 1
+        return self.update_patchform(self, fid)
 
 
 # Assembler form
