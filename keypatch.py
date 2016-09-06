@@ -907,10 +907,10 @@ class Keypatch_Form(idaapi.Form):
         if fid == self.c_opt_reanalyze.id:
             global kp_show_reanalyze_warning
             if kp_show_reanalyze_warning:
-                #return: -1:cancel,0-no,1-ok
                 reanalyze = self.GetControlValue(self.c_opt_reanalyze)
+                #return: -1:cancel,0-no,1-ok
                 if reanalyze == 0:
-                    if 1 == idaapi.askyn_c(0, 'Re-analyze after patching is to keep code in a good shape.\nDisable this feature may silently break something.\nDo you want to continue?'):
+                    if 1 == idaapi.askyn_c(0, 'Re-analyze after patching is to keep code in a good shape.\nDisable this option may silently break something.\nDo you want to continue?'):
                         kp_show_reanalyze_warning = False
                     else:
                         self.SetControlValue(self.c_opt_reanalyze, 4)
