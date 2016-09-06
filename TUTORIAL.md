@@ -5,7 +5,6 @@ See [README.md](README.md) for a complete guideline of all features of Keypatch.
 
 
 1. Use **Patcher** tool
-
 - Load a binary into IDA.
 - At any place in IDA window, press the hotkey `Ctrl-Alt-K` to open the
   Patcher dialog.
@@ -14,7 +13,6 @@ See [README.md](README.md) for a complete guideline of all features of Keypatch.
 
 
 2. Use **Fill Range** tool
-
 - Load a binary into IDA.
 - Select a range of code in IDA window, then press the hotkey `Ctrl-Alt-K` to open
   the "Fill Range" dialog. Note that the same hotkey would open the Patcher window
@@ -25,21 +23,18 @@ See [README.md](README.md) for a complete guideline of all features of Keypatch.
 
 
 3. Revert (undo) the last patching
-
 - After any modification (like in tutorial 2 or 3 above), do right-click in IDA window,
   then choose from the popup menu "Keypatch | Undo last patching" to revert (undo) the
   last action.
 
 
 4. Save the modification
-
 - After all the patching done in tutorial 1, 2, 3 above, save the result by choosing
   menu "Edit | Patch program | Apply patches to input file". Note that this action
   really changes the binary, so be sure this is what you desire.
 
 
 5. Use **Assembler** tool
-
 - Open the Assembler dialog by either right-click in IDA window, then choose from
   the popup menu "Keypatch | Assembler". Or choose from the main menu "Edit | Keypatch | Assembler".
 - Enter a new assembly instruction in the Assembly control, then see the encoding appearing
