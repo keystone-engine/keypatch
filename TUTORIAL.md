@@ -7,26 +7,20 @@ See [README.md](README.md) for a complete guideline of all features of Keypatch.
 1. Use **Patcher** tool
 
 - Load a binary into IDA.
-
 - At any place in IDA window, press the hotkey `Ctrl-Alt-K` to open the
   Patcher dialog.
-
 - Enter a new assembly instruction to the Assembly control.
-
 - Click button `Patch` to change the original instruction to the new instruction.
 
 
 2. Use **Fill Range** tool
 
 - Load a binary into IDA.
-
 - Select a range of code in IDA window, then press the hotkey `Ctrl-Alt-K` to open
   the "Fill Range" dialog. Note that the same hotkey would open the Patcher window
   if you do not select a range of code, as in tutorial 1 above.
-
 - Enter a new assembly instruction to the Assembly control. Alternatively, you can
   also enter a string in hexcode format, such as `0x90`, `90, 91`, `AAh`.
-
 - Click button `Patch` to fill the selected range with the input above.
 
 
@@ -48,7 +42,6 @@ See [README.md](README.md) for a complete guideline of all features of Keypatch.
 
 - Open the Assembler dialog by either right-click in IDA window, then choose from
   the popup menu "Keypatch | Assembler". Or choose from the main menu "Edit | Keypatch | Assembler".
-
 - Enter a new assembly instruction in the Assembly control, then see the encoding appearing
   in the "Encode" control. Note that unlike "Patcher" & "Fill Range" tools, this does not
   modify the binary.
