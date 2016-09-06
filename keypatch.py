@@ -1010,7 +1010,7 @@ KEYPATCH:: Fill Range
         self.EnableField(self.c_size, False)
         self.EnableField(self.c_addr_end, False)
 
-        return self.update_patchform(self, fid)
+        return self.update_patchform(fid)
 
 
 # Patcher form
@@ -1081,7 +1081,7 @@ KEYPATCH:: Patcher
         self.EnableField(self.c_orig_encoding, False)
         self.EnableField(self.c_orig_len, False)
 
-        return self.update_patchform(self, fid)
+        return self.update_patchform(fid)
 
 
 # Assembler form
