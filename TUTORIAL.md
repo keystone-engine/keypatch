@@ -1,7 +1,10 @@
+Keypatch Tutorial
+=================
+
 This is a quick tutorial for new users of Keypatch.
 You are supposed to already have Keypatch installed for your IDA Pro.
 
-See [README.md](README.md) for a complete guideline of all features of Keypatch.
+See [README.md](README.md) for a complete guideline of Keypatch.
 
 
 ### 1. Use **Patcher** tool
