@@ -1186,12 +1186,12 @@ BUTTON YES* Open Keypatch Website
 KEYPATCH:: About
 
             {FormChangeCb}
-            Keypatch IDA plugin v{0}, using Keystone Engine v{1}.
+            Keypatch IDA plugin v%s, using Keystone Engine v%s.
             (c) Nguyen Anh Quynh + Thanh Nguyen, 2016.
 
             Keypatch is released under the GPL v2.
             Find more info at http://www.keystone-engine.org/keypatch
-            """.format(version, keystone.__version__), {
+            """ %(version, keystone.__version__), {
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
@@ -1217,9 +1217,9 @@ BUTTON YES* Open Keypatch Website
 KEYPATCH:: Check for update
 
             {FormChangeCb}
-            Your Keypatch is v{0}
-            {1}
-            """.format(version, message), {
+            Your Keypatch is v%s
+            %s
+            """ %(version, message), {
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
