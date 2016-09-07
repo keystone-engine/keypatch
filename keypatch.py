@@ -942,6 +942,19 @@ class Keypatch_Form(idaapi.Form):
 
         return 1
 
+    # get Patcher/FillRange options
+    def get_opts(self, name=None):
+        names = self.c_opt_chk.children_names
+        val = self.c_opt_chk.value
+        opts = {}
+        for i in range(len(names)):
+            opts[names[i]] = val & (2**i)
+
+        if name != None:
+            opts[name] = val
+
+        return opts
+
 
 # Fill Range form
 class Keypatch_FillRange(Keypatch_Form):
@@ -989,19 +1002,6 @@ KEYPATCH:: Fill Range
             })
 
         self.Compile()
-
-    # get FillRange options
-    def get_opts(self, name=None):
-        names = self.c_opt_chk.children_names
-        val = self.c_opt_chk.value
-        opts = {}
-        for i in range(len(names)):
-            opts[names[i]] = val & (2**i)
-
-        if name != None:
-            opts[name] = val
-
-        return opts
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
@@ -1059,19 +1059,6 @@ KEYPATCH:: Patcher
             })
 
         self.Compile()
-
-    # get Patcher options
-    def get_opts(self, name=None):
-        names = self.c_opt_chk.children_names
-        val = self.c_opt_chk.value
-        opts = {}
-        for i in range(len(names)):
-            opts[names[i]] = val & (2**i)
-
-        if name != None:
-            opts[name] = val
-
-        return opts
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
