@@ -6,12 +6,12 @@
 # Keypatch is released under the GPL v2. See COPYING for more information.
 # Find docs & latest version at http://keystone-engine.org/keypatch
 
-# This IDA plugin includes 3 tools inside: Patcher, Fill range & Assembler.
+# This IDA plugin includes 3 tools inside: Patcher, Fill Range & Assembler.
 # Access to these tools via menu "Edit | Keypatch", or via right-click popup menu "Keypatch".
 
-# Hotkey CTRL+ALT+K opens either Patcher or "Fill range" window, depending on context.
+# Hotkey Ctrl-Alt-K opens either Patcher or "Fill Range" window, depending on context.
 #  - If there is no code selection, hotkey opens Patcher dialog
-#  - If a range of code is selected, hotkey opens "Fill range" dialog
+#  - If a range of code is selected, hotkey opens "Fill Range" dialog
 
 # To revert (undo) the last patching, choose menu "Edit | Keypatch | Undo last patching".
 # To check for update version, choose menu "Edit | Keypatch | Check for update".
@@ -1382,8 +1382,8 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         global kp_initialized
 
         # register popup menu handlers
-        Kp_MC_Patcher.register(self, "Patcher    (Ctrl+Alt+K)")
-        Kp_MC_Fill_Range.register(self, "Fill range")
+        Kp_MC_Patcher.register(self, "Patcher    (Ctrl-Alt-K)")
+        Kp_MC_Fill_Range.register(self, "Fill Range")
         Kp_MC_Undo.register(self, "Undo last patching")
         Kp_MC_Assembler.register(self, "Assembler")
         Kp_MC_Updater.register(self, "Check for update")
@@ -1397,7 +1397,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         if kp_initialized == False:
             kp_initialized = True
             # add Keypatch menu
-            menu = idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (CTRL+ALT+K)", "", 1, self.patcher, None)
+            menu = idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (Ctrl-Alt-K)", "", 1, self.patcher, None)
             if menu is not None:
                 idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Check for update", "", 1, self.updater, None)
@@ -1405,7 +1405,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "Fill range", "", 1, self.fill_range, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Fill Range", "", 1, self.fill_range, None)
             elif idaapi.IDA_SDK_VERSION < 680:
                 # older IDAPython (such as in IDAPro 6.6) does add new submenu.
                 # in this case, put Keypatch menu in menu Edit \ Patch program
@@ -1415,13 +1415,14 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update", "", 0, self.updater, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Assembler", "", 0, self.assembler, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill range", "", 0, self.fill_range, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl+Alt+K)", "", 0, self.patcher, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill Range", "", 0, self.fill_range, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl-Alt-K)", "", 0, self.patcher, None)
 
             print("=" * 80)
             print("Keypatch registered IDA plugin {0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
             print("Keypatch is using Keystone v{0}".format(keystone.__version__))
-            print("Keypatch Patcher's shortcut key is CTRL+ALT+K")
+            print("Keypatch Patcher's shortcut key is Ctrl-Alt-K")
+            print("Use the same hotkey Ctrl-Alt-K to open 'Fill Range' window on a selected range of code")
             print("To revert (undo) the last patching, choose menu Edit | Keypatch | Undo last patching")
             print("Keypatch Assembler is available from menu Edit | Keypatch | Assembler")
             print("Find more information about Keypatch at http://keystone-engine.org/keypatch")
@@ -1539,7 +1540,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
                     raw_assembly = self.kp_asm.ida_resolve(assembly, address)
 
-                    print("Keypatch: attempt to modify \"{0}\" at 0x{1:X} to \"{2}\"".format(
+                    print("Keypatch: attempting to modify \"{0}\" at 0x{1:X} to \"{2}\"".format(
                             self.kp_asm.ida_get_disasm(address), address, assembly))
 
                     length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding, comment, None)
@@ -1594,7 +1595,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 padding = (self.opts.get("c_opt_padding", 0) != 0)
                 comment = (self.opts.get("c_opt_comment", 0) != 0)
 
-                print("Keypatch: attempt to fill range [0x{0:X}:0x{1:X}] with \"{2}\"".format(
+                print("Keypatch: attempting to fill range [0x{0:X}:0x{1:X}] with \"{2}\"".format(
                     addr_begin, addr_end - 1, assembly))
 
                 raw_assembly = self.kp_asm.ida_resolve(assembly, addr_begin)
