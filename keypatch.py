@@ -6,12 +6,12 @@
 # Keypatch is released under the GPL v2. See COPYING for more information.
 # Find docs & latest version at http://keystone-engine.org/keypatch
 
-# This IDA plugin includes 3 tools inside: Patcher, Fill range & Assembler.
+# This IDA plugin includes 3 tools inside: Patcher, Fill Range & Assembler.
 # Access to these tools via menu "Edit | Keypatch", or via right-click popup menu "Keypatch".
 
-# Hotkey CTRL+ALT+K opens either Patcher or "Fill range" window, depending on context.
+# Hotkey Ctrl-Alt-K opens either Patcher or "Fill Range" window, depending on context.
 #  - If there is no code selection, hotkey opens Patcher dialog
-#  - If a range of code is selected, hotkey opens "Fill range" dialog
+#  - If a range of code is selected, hotkey opens "Fill Range" dialog
 
 # To revert (undo) the last patching, choose menu "Edit | Keypatch | Undo last patching".
 # To check for update version, choose menu "Edit | Keypatch | Check for update".
@@ -137,7 +137,6 @@ def patch_raw(address, patch_data, len):
 
 ## Main Keypatch class
 class Keypatch_Asm:
-
     # supported architectures
     arch_lists = {
         "X86 16-bit": (KS_ARCH_X86, KS_MODE_16),                # X86 16-bit
@@ -715,11 +714,12 @@ class Keypatch_Asm:
             print("Keypatch: successfully reverted {0:d} byte(s) at 0x{1:X} from [{2}] to [{3}]".format(plen,
                                         address, to_hexstr(p_orig_data), to_hexstr(patch_data)))
 
-        # ask IDA to re-analyze the patched area
-        idaapi.analyze_area(address, orig_func_end)
+        if kp_reanalyze:
+            # ask IDA to re-analyze the patched area
+            idaapi.analyze_area(address, orig_func_end)
 
-        # try to fix IDA function re-analyze issue after patching
-        idaapi.func_setend(address, orig_func_end)
+            # try to fix IDA function re-analyze issue after patching
+            idaapi.func_setend(address, orig_func_end)
 
         new_patch_comment = None
         if save_origcode:
@@ -883,6 +883,46 @@ class Keypatch_Form(idaapi.Form):
     def OnFormChange(self, fid):
         return 1
 
+    # update Patcher & Fillrange controls
+    def update_patchform(self, fid):
+        self.EnableField(self.c_endian, False)
+        self.EnableField(self.c_addr, False)
+
+        (arch, mode) = (self.kp_asm.arch, self.kp_asm.mode)
+        # assembly is focused
+        self.SetFocusedField(self.c_assembly)
+
+        if arch == KS_ARCH_X86:
+            # do not show Endian control
+            self.ShowField(self.c_endian, False)
+            # allow to choose Syntax
+            self.ShowField(self.c_syntax, True)
+            self.ShowField(self.c_opt_padding, True)
+        else:   # do not show Syntax control for non-X86 mode
+            self.ShowField(self.c_syntax, False)
+            # for now, we do not support padding for non-X86 archs
+            self.ShowField(self.c_opt_padding, False)
+            #self.EnableField(self.c_opt_padding, False)
+
+        if fid == self.c_opt_reanalyze.id:
+            global kp_show_reanalyze_warning, kp_reanalyze
+            kp_reanalyze = (self.GetControlValue(self.c_opt_reanalyze) != 0)
+            if kp_show_reanalyze_warning and (not kp_reanalyze):
+                reanalyze = self.GetControlValue(self.c_opt_reanalyze)
+                #return: -1=cancel, 0=no, 1=ok
+                if reanalyze == 0:
+                    if 1 == idaapi.askyn_c(0, 'Re-analyze after patching is to keep code in a good shape.\nDisable this option may silently break something.\nDo you want to continue?'):
+                        kp_show_reanalyze_warning = False
+                    else:
+                        self.SetControlValue(self.c_opt_reanalyze, 4)
+
+
+
+        # update other controls & Encoding with live assembling
+        self.update_controls(arch, mode)
+
+        return 1
+
     # update some controls - including Encoding control
     def update_controls(self, arch, mode):
         # Fixup & Encoding-len are read-only controls
@@ -901,6 +941,19 @@ class Keypatch_Form(idaapi.Form):
         self._update_encoding(arch, mode | endian)
 
         return 1
+
+    # get Patcher/FillRange options
+    def get_opts(self, name=None):
+        names = self.c_opt_chk.children_names
+        val = self.c_opt_chk.value
+        opts = {}
+        for i in range(len(names)):
+            opts[names[i]] = val & (2**i)
+
+        if name != None:
+            opts[name] = val
+
+        return opts
 
 
 # Fill Range form
@@ -926,7 +979,8 @@ KEYPATCH:: Fill Range
              <-   Encode:{c_encoding}>
              <-   Size  :{c_encoding_len}>
             <~N~OPs padding until next instruction boundary:{c_opt_padding}>
-            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>{c_opt_chk}>
+            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>
+            <~R~e-analyze the patched area after patching:{c_opt_reanalyze}>{c_opt_chk}>
             """, {
             'c_endian': Form.DropdownListControl(
                           items = self.kp_asm.endian_lists.keys(),
@@ -943,53 +997,19 @@ KEYPATCH:: Fill Range
                           items = self.syntax_keys,
                           readonly = True,
                           selval = self.syntax_id),
-            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', ''), value=opts['c_opt_chk']),
+            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', 'c_opt_reanalyze', ''), value=opts['c_opt_chk']),
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
         self.Compile()
 
-    # get FillRange options
-    def get_opts(self, name=None):
-        names = self.c_opt_chk.children_names
-        val = self.c_opt_chk.value
-        opts = {}
-        for i in range(len(names)):
-            opts[names[i]] = val & (2**i)
-
-        if name != None:
-            opts[name] = val
-
-        return opts
-
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        (arch, mode) = (self.kp_asm.arch, self.kp_asm.mode)
-        # assembly is focused
-        self.SetFocusedField(self.c_assembly)
-
-        # make address, arch, endian and syntax read-only in patch_mode mode
+        # make some controls read-only in FillRange mode
         self.EnableField(self.c_size, False)
-        self.EnableField(self.c_endian, False)
-        self.EnableField(self.c_addr, False)
         self.EnableField(self.c_addr_end, False)
 
-        if arch == KS_ARCH_X86:
-            # do not show Endian control
-            self.ShowField(self.c_endian, False)
-            # allow to choose Syntax
-            self.ShowField(self.c_syntax, True)
-            self.ShowField(self.c_opt_padding, True)
-        else:   # do not show Syntax control for non-X86 mode
-            self.ShowField(self.c_syntax, False)
-            # for now, we do not support padding for non-X86 archs
-            self.ShowField(self.c_opt_padding, False)
-            #self.EnableField(self.c_opt_padding, False)
-
-        # update other controls & Encoding with live assembling
-        self.update_controls(arch, mode)
-
-        return 1
+        return self.update_patchform(fid)
 
 
 # Patcher form
@@ -1015,7 +1035,8 @@ KEYPATCH:: Patcher
              <-   Encode:{c_encoding}>
              <-   Size  :{c_encoding_len}>
             <~N~OPs padding until next instruction boundary:{c_opt_padding}>
-            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>{c_opt_chk}>
+            <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>
+            <~R~e-analyze the patched area after patching:{c_opt_reanalyze}>{c_opt_chk}>
             """, {
             'c_endian': Form.DropdownListControl(
                           items = self.kp_asm.endian_lists.keys(),
@@ -1033,55 +1054,20 @@ KEYPATCH:: Patcher
                           items = self.syntax_keys,
                           readonly = True,
                           selval = self.syntax_id),
-            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', ''), value=opts['c_opt_chk']),
+            'c_opt_chk':idaapi.Form.ChkGroupControl(('c_opt_padding', 'c_opt_comment', 'c_opt_reanalyze', ''), value=opts['c_opt_chk']),
             'FormChangeCb': Form.FormChangeCb(self.OnFormChange),
             })
 
         self.Compile()
 
-    # get Patcher options
-    def get_opts(self, name=None):
-        names = self.c_opt_chk.children_names
-        val = self.c_opt_chk.value
-        opts = {}
-        for i in range(len(names)):
-            opts[names[i]] = val & (2**i)
-
-        if name != None:
-            opts[name] = val
-
-        return opts
-
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        (arch, mode) = (self.kp_asm.arch, self.kp_asm.mode)
-        # assembly is focused
-        self.SetFocusedField(self.c_assembly)
-
-        # make address, arch, endian and syntax read-only in patch_mode mode
+        # make some fields read-only in Patch mode
         self.EnableField(self.c_orig_assembly, False)
         self.EnableField(self.c_orig_encoding, False)
         self.EnableField(self.c_orig_len, False)
 
-        self.EnableField(self.c_endian, False)
-        self.EnableField(self.c_addr, False)
-
-        if arch == KS_ARCH_X86:
-            # do not show Endian control
-            self.ShowField(self.c_endian, False)
-            # allow to choose Syntax
-            self.ShowField(self.c_syntax, True)
-            self.ShowField(self.c_opt_padding, True)
-        else:   # do not show Syntax control for non-X86 mode
-            self.ShowField(self.c_syntax, False)
-            # for now, we do not support padding for non-X86 archs
-            self.ShowField(self.c_opt_padding, False)
-            #self.EnableField(self.c_opt_padding, False)
-
-        # update other controls & Encoding with live assembling
-        self.update_controls(arch, mode)
-
-        return 1
+        return self.update_patchform(fid)
 
 
 # Assembler form
@@ -1133,7 +1119,7 @@ KEYPATCH:: Assembler
         # only Assembler mode allows to select arch+mode
         arch_id = self.GetControlValue(self.c_arch)
         (arch, mode) = self.kp_asm.get_arch_by_idx(arch_id)
-		
+
         # assembly is focused
         self.SetFocusedField(self.c_assembly)
 
@@ -1201,7 +1187,7 @@ KEYPATCH:: About
     def OnFormChange(self, fid):
         if fid == -2:   # Goto homepage
             import webbrowser
-            # open in a new tab, if possible
+            # open Keypatch homepage in a new tab, if possible
             webbrowser.open(KP_HOMEPAGE, new = 2)
 
         return 1
@@ -1229,96 +1215,99 @@ KEYPATCH:: Check for update
     def OnFormChange(self, fid):
         if fid == -2:   # Goto homepage
             import webbrowser
-            # open in a new tab, if possible
+            # open Keypatch homepage in a new tab, if possible
             webbrowser.open(KP_HOMEPAGE, new = 2)
 
         return 1
 
 
-# adapted from pull request #7 by @quangnh89
-class Kp_Menu_Context(idaapi.action_handler_t):
-    def __init__(self):
-        idaapi.action_handler_t.__init__(self)
+try:
+    # adapted from pull request #7 by @quangnh89
+    class Kp_Menu_Context(idaapi.action_handler_t):
+        def __init__(self):
+            idaapi.action_handler_t.__init__(self)
 
-    @classmethod
-    def get_name(self):
-        return self.__name__
+        @classmethod
+        def get_name(self):
+            return self.__name__
 
-    @classmethod
-    def get_label(self):
-        return self.label
+        @classmethod
+        def get_label(self):
+            return self.label
 
-    @classmethod
-    def register(self, plugin, label):
-        self.plugin = plugin
-        self.label = label
-        instance = self()
-        return idaapi.register_action(idaapi.action_desc_t(
-            self.get_name(),  # Name. Acts as an ID. Must be unique.
-            instance.get_label(),  # Label. That's what users see.
-            instance  # Handler. Called when activated, and for updating
-        ))
+        @classmethod
+        def register(self, plugin, label):
+            self.plugin = plugin
+            self.label = label
+            instance = self()
+            return idaapi.register_action(idaapi.action_desc_t(
+                self.get_name(),  # Name. Acts as an ID. Must be unique.
+                instance.get_label(),  # Label. That's what users see.
+                instance  # Handler. Called when activated, and for updating
+            ))
 
-    @classmethod
-    def unregister(self):
-        """Unregister the action.
-        After unregistering the class cannot be used.
-        """
-        idaapi.unregister_action(self.get_name())
+        @classmethod
+        def unregister(self):
+            """Unregister the action.
+            After unregistering the class cannot be used.
+            """
+            idaapi.unregister_action(self.get_name())
 
-    @classmethod
-    def activate(self, ctx):
-        # dummy method
-        return 1
+        @classmethod
+        def activate(self, ctx):
+            # dummy method
+            return 1
 
-    @classmethod
-    def update(self, ctx):
-        if ctx.form_type == idaapi.BWN_DISASM:
-            return idaapi.AST_ENABLE_FOR_FORM
-        else:
-            return idaapi.AST_DISABLE_FOR_FORM
-
-
-# context menu for Patcher
-class Kp_MC_Patcher(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.patcher()
-        return 1
+        @classmethod
+        def update(self, ctx):
+            if ctx.form_type == idaapi.BWN_DISASM:
+                return idaapi.AST_ENABLE_FOR_FORM
+            else:
+                return idaapi.AST_DISABLE_FOR_FORM
 
 
-# context menu for Fill Range
-class Kp_MC_Fill_Range(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.fill_range()
-        return 1
+    # context menu for Patcher
+    class Kp_MC_Patcher(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.patcher()
+            return 1
 
 
-# context menu for Undo
-class Kp_MC_Undo(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.undo()
-        return 1
+    # context menu for Fill Range
+    class Kp_MC_Fill_Range(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.fill_range()
+            return 1
 
 
-# context menu for Assembler
-class Kp_MC_Assembler(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.assembler()
-        return 1
+    # context menu for Undo
+    class Kp_MC_Undo(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.undo()
+            return 1
 
 
-# context menu for Check Update
-class Kp_MC_Updater(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.updater()
-        return 1
+    # context menu for Assembler
+    class Kp_MC_Assembler(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.assembler()
+            return 1
 
 
-# context menu for About
-class Kp_MC_About(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.about()
-        return 1
+    # context menu for Check Update
+    class Kp_MC_Updater(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.updater()
+            return 1
+
+
+    # context menu for About
+    class Kp_MC_About(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.about()
+            return 1
+except:
+    pass
 
 
 # hooks for popup menu
@@ -1332,18 +1321,23 @@ class Hooks(idaapi.UI_Hooks):
         #      ...
         #
         if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Assembler.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
+            try:
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Assembler.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
+            except:
+                pass
 
 
 # check if we already initialized Keypatch
 kp_initialized = False
+kp_show_reanalyze_warning = True
+kp_reanalyze = True
 
 
 #--------------------------------------------------------------------------
@@ -1358,7 +1352,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
 
     def load_configuration(self):
-        # default 
+        # default
         self.opts = {}
 
         # load configuration from file
@@ -1369,23 +1363,28 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         except IOError:
             print("Keypatch: use default configuration.")
         except Exception as e:
-            print("Keypatch: exception: %s" % (str(e)))
+            print("Keypatch: exception: {0}".format(str(e)))
 
         # use default values if not defined in config file
         self.opts['c_opt_padding'] = self.opts.get('c_opt_padding', 1)
         self.opts['c_opt_comment'] = self.opts.get('c_opt_comment', 2)
-        self.opts['c_opt_chk'] = self.opts.get('c_opt_chk', 3)
+        if 'c_opt_reanalyze' not in self.opts:
+            self.opts['c_opt_reanalyze'] = 4
+        self.opts['c_opt_chk'] = self.opts['c_opt_padding'] | self.opts['c_opt_comment'] | self.opts['c_opt_reanalyze']
 
     def init(self):
         global kp_initialized
 
         # register popup menu handlers
-        Kp_MC_Patcher.register(self, "Patcher    (Ctrl+Alt+K)")
-        Kp_MC_Fill_Range.register(self, "Fill range")
-        Kp_MC_Undo.register(self, "Undo last patching")
-        Kp_MC_Assembler.register(self, "Assembler")
-        Kp_MC_Updater.register(self, "Check for update")
-        Kp_MC_About.register(self, "About")
+        try:
+            Kp_MC_Patcher.register(self, "Patcher    (Ctrl-Alt-K)")
+            Kp_MC_Fill_Range.register(self, "Fill Range")
+            Kp_MC_Undo.register(self, "Undo last patching")
+            Kp_MC_Assembler.register(self, "Assembler")
+            Kp_MC_Updater.register(self, "Check for update")
+            Kp_MC_About.register(self, "About")
+        except:
+            pass
 
         # setup popup menu
         self.hooks = Hooks()
@@ -1395,7 +1394,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         if kp_initialized == False:
             kp_initialized = True
             # add Keypatch menu
-            menu = idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (CTRL+ALT+K)", "", 1, self.patcher, None)
+            menu = idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (Ctrl-Alt-K)", "", 1, self.patcher, None)
             if menu is not None:
                 idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Check for update", "", 1, self.updater, None)
@@ -1403,7 +1402,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
-                idaapi.add_menu_item("Edit/Keypatch/",    "Fill range", "", 1, self.fill_range, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Fill Range", "", 1, self.fill_range, None)
             elif idaapi.IDA_SDK_VERSION < 680:
                 # older IDAPython (such as in IDAPro 6.6) does add new submenu.
                 # in this case, put Keypatch menu in menu Edit \ Patch program
@@ -1413,20 +1412,21 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update", "", 0, self.updater, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Assembler", "", 0, self.assembler, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill range", "", 0, self.fill_range, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl+Alt+K)", "", 0, self.patcher, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill Range", "", 0, self.fill_range, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl-Alt-K)", "", 0, self.patcher, None)
 
             print("=" * 80)
             print("Keypatch registered IDA plugin {0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
             print("Keypatch is using Keystone v{0}".format(keystone.__version__))
-            print("Keypatch Patcher's shortcut key is CTRL+ALT+K")
+            print("Keypatch Patcher's shortcut key is Ctrl-Alt-K")
+            print("Use the same hotkey Ctrl-Alt-K to open 'Fill Range' window on a selected range of code")
             print("To revert (undo) the last patching, choose menu Edit | Keypatch | Undo last patching")
             print("Keypatch Assembler is available from menu Edit | Keypatch | Assembler")
             print("Find more information about Keypatch at http://keystone-engine.org/keypatch")
 
             self.load_configuration()
 
-            print("=" * 80)    
+            print("=" * 80)
             self.kp_asm = Keypatch_Asm()
 
         return idaapi.PLUGIN_KEEP
@@ -1442,9 +1442,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         try:
             json.dump(self.opts, open(KP_CFGFILE, "wt"))
         except Exception as e:
-            print("Keypatch: exception: %s" % (str(e)))
+            print("Keypatch: exception: {0}".format(str(e)))
         else:
-            print("Keypatch: configuration is saved to %s" % (KP_CFGFILE))
+            print("Keypatch: configuration is saved to {0}".format(KP_CFGFILE))
 
     # null handler
     def menu_null(self):
@@ -1537,7 +1537,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
 
                     raw_assembly = self.kp_asm.ida_resolve(assembly, address)
 
-                    print("Keypatch: attempt to modify \"{0}\" at 0x{1:X} to \"{2}\"".format(
+                    print("Keypatch: attempting to modify \"{0}\" at 0x{1:X} to \"{2}\"".format(
                             self.kp_asm.ida_get_disasm(address), address, assembly))
 
                     length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding, comment, None)
@@ -1592,7 +1592,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 padding = (self.opts.get("c_opt_padding", 0) != 0)
                 comment = (self.opts.get("c_opt_comment", 0) != 0)
 
-                print("Keypatch: attempt to fill range [0x{0:X}:0x{1:X}] with \"{2}\"".format(
+                print("Keypatch: attempting to fill range [0x{0:X}:0x{1:X}] with \"{2}\"".format(
                     addr_begin, addr_end - 1, assembly))
 
                 raw_assembly = self.kp_asm.ida_resolve(assembly, addr_begin)
@@ -1646,11 +1646,12 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                         print("Keypatch: successfully filled range [0x{0:X}:0x{1:X}] with \"{2}\", replacing \"{3}\"".format(
                                 addr_begin, addr_end - 1, assembly, '; '.join(orig_asm)))
 
-                        # ask IDA to re-analyze the patched area
-                        idaapi.analyze_area(addr_begin, orig_func_end)
+                        if kp_reanalyze:
+                            # ask IDA to re-analyze the patched area
+                            idaapi.analyze_area(addr_begin, orig_func_end)
 
-                        # try to fix IDA function re-analyze issue after patching
-                        idaapi.func_setend(addr_begin, orig_func_end)
+                            # try to fix IDA function re-analyze issue after patching
+                            idaapi.func_setend(addr_begin, orig_func_end)
 
                         new_patch_comment = None
 
