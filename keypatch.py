@@ -1234,90 +1234,93 @@ KEYPATCH:: Check for update
         return 1
 
 
-# adapted from pull request #7 by @quangnh89
-class Kp_Menu_Context(idaapi.action_handler_t):
-    def __init__(self):
-        idaapi.action_handler_t.__init__(self)
+try:
+    # adapted from pull request #7 by @quangnh89
+    class Kp_Menu_Context(idaapi.action_handler_t):
+        def __init__(self):
+            idaapi.action_handler_t.__init__(self)
 
-    @classmethod
-    def get_name(self):
-        return self.__name__
+        @classmethod
+        def get_name(self):
+            return self.__name__
 
-    @classmethod
-    def get_label(self):
-        return self.label
+        @classmethod
+        def get_label(self):
+            return self.label
 
-    @classmethod
-    def register(self, plugin, label):
-        self.plugin = plugin
-        self.label = label
-        instance = self()
-        return idaapi.register_action(idaapi.action_desc_t(
-            self.get_name(),  # Name. Acts as an ID. Must be unique.
-            instance.get_label(),  # Label. That's what users see.
-            instance  # Handler. Called when activated, and for updating
-        ))
+        @classmethod
+        def register(self, plugin, label):
+            self.plugin = plugin
+            self.label = label
+            instance = self()
+            return idaapi.register_action(idaapi.action_desc_t(
+                self.get_name(),  # Name. Acts as an ID. Must be unique.
+                instance.get_label(),  # Label. That's what users see.
+                instance  # Handler. Called when activated, and for updating
+            ))
 
-    @classmethod
-    def unregister(self):
-        """Unregister the action.
-        After unregistering the class cannot be used.
-        """
-        idaapi.unregister_action(self.get_name())
+        @classmethod
+        def unregister(self):
+            """Unregister the action.
+            After unregistering the class cannot be used.
+            """
+            idaapi.unregister_action(self.get_name())
 
-    @classmethod
-    def activate(self, ctx):
-        # dummy method
-        return 1
+        @classmethod
+        def activate(self, ctx):
+            # dummy method
+            return 1
 
-    @classmethod
-    def update(self, ctx):
-        if ctx.form_type == idaapi.BWN_DISASM:
-            return idaapi.AST_ENABLE_FOR_FORM
-        else:
-            return idaapi.AST_DISABLE_FOR_FORM
-
-
-# context menu for Patcher
-class Kp_MC_Patcher(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.patcher()
-        return 1
+        @classmethod
+        def update(self, ctx):
+            if ctx.form_type == idaapi.BWN_DISASM:
+                return idaapi.AST_ENABLE_FOR_FORM
+            else:
+                return idaapi.AST_DISABLE_FOR_FORM
 
 
-# context menu for Fill Range
-class Kp_MC_Fill_Range(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.fill_range()
-        return 1
+    # context menu for Patcher
+    class Kp_MC_Patcher(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.patcher()
+            return 1
 
 
-# context menu for Undo
-class Kp_MC_Undo(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.undo()
-        return 1
+    # context menu for Fill Range
+    class Kp_MC_Fill_Range(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.fill_range()
+            return 1
 
 
-# context menu for Assembler
-class Kp_MC_Assembler(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.assembler()
-        return 1
+    # context menu for Undo
+    class Kp_MC_Undo(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.undo()
+            return 1
 
 
-# context menu for Check Update
-class Kp_MC_Updater(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.updater()
-        return 1
+    # context menu for Assembler
+    class Kp_MC_Assembler(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.assembler()
+            return 1
 
 
-# context menu for About
-class Kp_MC_About(Kp_Menu_Context):
-    def activate(self, ctx):
-        self.plugin.about()
-        return 1
+    # context menu for Check Update
+    class Kp_MC_Updater(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.updater()
+            return 1
+
+
+    # context menu for About
+    class Kp_MC_About(Kp_Menu_Context):
+        def activate(self, ctx):
+            self.plugin.about()
+            return 1
+except:
+    pass
 
 
 # hooks for popup menu
@@ -1331,14 +1334,17 @@ class Hooks(idaapi.UI_Hooks):
         #      ...
         #
         if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Assembler.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
-            idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
+            try:
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Assembler.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
+            except:
+                pass
 
 
 # check if we already initialized Keypatch
@@ -1382,12 +1388,15 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         global kp_initialized
 
         # register popup menu handlers
-        Kp_MC_Patcher.register(self, "Patcher    (Ctrl-Alt-K)")
-        Kp_MC_Fill_Range.register(self, "Fill Range")
-        Kp_MC_Undo.register(self, "Undo last patching")
-        Kp_MC_Assembler.register(self, "Assembler")
-        Kp_MC_Updater.register(self, "Check for update")
-        Kp_MC_About.register(self, "About")
+        try:
+            Kp_MC_Patcher.register(self, "Patcher    (Ctrl-Alt-K)")
+            Kp_MC_Fill_Range.register(self, "Fill Range")
+            Kp_MC_Undo.register(self, "Undo last patching")
+            Kp_MC_Assembler.register(self, "Assembler")
+            Kp_MC_Updater.register(self, "Check for update")
+            Kp_MC_About.register(self, "About")
+        except:
+            pass
 
         # setup popup menu
         self.hooks = Hooks()
