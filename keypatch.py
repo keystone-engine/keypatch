@@ -1005,7 +1005,7 @@ KEYPATCH:: Fill Range
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        # make address, arch, endian and syntax read-only in patch_mode mode
+        # make some controls read-only in FillRange mode
         self.EnableField(self.c_size, False)
         self.EnableField(self.c_addr_end, False)
 
@@ -1062,7 +1062,7 @@ KEYPATCH:: Patcher
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        # make address, arch, endian and syntax read-only in patch_mode mode
+        # make some fields read-only in Patch mode
         self.EnableField(self.c_orig_assembly, False)
         self.EnableField(self.c_orig_encoding, False)
         self.EnableField(self.c_orig_len, False)
@@ -1187,7 +1187,7 @@ KEYPATCH:: About
     def OnFormChange(self, fid):
         if fid == -2:   # Goto homepage
             import webbrowser
-            # open in a new tab, if possible
+            # open Keypatch homepage in a new tab, if possible
             webbrowser.open(KP_HOMEPAGE, new = 2)
 
         return 1
@@ -1215,7 +1215,7 @@ KEYPATCH:: Check for update
     def OnFormChange(self, fid):
         if fid == -2:   # Goto homepage
             import webbrowser
-            # open in a new tab, if possible
+            # open Keypatch homepage in a new tab, if possible
             webbrowser.open(KP_HOMEPAGE, new = 2)
 
         return 1
