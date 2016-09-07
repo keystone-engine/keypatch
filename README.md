@@ -5,7 +5,7 @@ Keypatch is a plugin of [IDA Pro](https://www.hex-rays.com/products/ida/) for [K
 
 Keypatch consists of 3 tools inside.
 
-- **Patcher** & **Fill range**: these allow you to type in assembly to directly patch your binary.
+- **Patcher** & **Fill Range**: these allow you to type in assembly to directly patch your binary.
 - **Assembler**: this interactive tool let you enter assembly & get back instruction encoding.
 
 Keypatch is confirmed to work on IDA Pro version 6.4, 6.6, 6.8, 6.9, 6.95 but should work flawlessly on older versions.
@@ -67,7 +67,7 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 <img src="screenshots/keypatch_patcher.png" height="460" />
 </p>
 
-- To fill a range of code with an instruction, select the range, then either press hotkey `CTRL+ALT+K`, or choose menu `Edit | Keypatch | Fill range`.
+- To fill a range of code with an instruction, select the range, then either press hotkey `CTRL+ALT+K`, or choose menu `Edit | Keypatch | Fill Range`.
     - In the `Assembly` box, you can either enter assembly code, or raw hexcode. Some examples of acceptable raw hexcode are `90`, `aa bb`, `0xAA, 0xBB`.
 <p align="center">
 <img src="screenshots/keypatch_fillrange.png" height="460" />
