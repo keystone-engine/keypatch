@@ -742,6 +742,9 @@ class Keypatch_Asm:
 
             if new_comment is not None:
                 idc.MakeComm(address, new_comment)
+        elif padding is not None: # we are patching
+            # save this patching for future "undo", but with empty patch comment
+            patch_info.append((address, assembly, p_orig_data, None))
 
         return plen
 
