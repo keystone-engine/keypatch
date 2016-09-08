@@ -682,9 +682,6 @@ class Keypatch_Asm:
         else:
             # we are reverting the change via "Undo" menu
             patch_len = len(patch_data)
-            # if we added comment before, we need to comment on this "Undo" now
-            if orig_comment and "Keypatch" in orig_comment:
-                save_origcode = True
 
         # save original function end to fix IDA re-analyze issue after patching
         orig_func_end = idc.GetFunctionAttr(address, idc.FUNCATTR_END)
@@ -721,30 +718,25 @@ class Keypatch_Asm:
             # try to fix IDA function re-analyze issue after patching
             idaapi.func_setend(address, orig_func_end)
 
-        new_patch_comment = None
-        if save_origcode:
-            # append original instruction to comments
-            if orig_comment == None:
-                orig_comment = ''
-                new_patch_comment = "Keypatch modified this from:\n  {0}".format('\n  '.join(orig_asm))
-            else:
-                new_patch_comment = "\nKeypatch modified this from:\n  {0}".format('\n  '.join(orig_asm))
+        if padding is not None: # we are patching
+            new_patch_comment = None
+            if save_origcode == True:
+                # append original instruction to comments
+                if orig_comment == None:
+                    orig_comment = ''
+                    new_patch_comment = "Keypatch modified this from:\n  {0}".format('\n  '.join(orig_asm))
+                else:
+                    new_patch_comment = "\nKeypatch modified this from:\n  {0}".format('\n  '.join(orig_asm))
 
-            new_comment = None
-
-            if padding is not None: # we are patching
                 new_comment = "{0}{1}".format(orig_comment, new_patch_comment)
-                # save this patching for future "undo"
-                patch_info.append((address, assembly, p_orig_data, new_patch_comment))
-            elif patch_comment is not None:   # we are reverting (undo)
+                idc.MakeComm(address, new_comment)
+            # save this patching for future "undo"
+            patch_info.append((address, assembly, p_orig_data, new_patch_comment))
+        else:   # we are reverting
+            if patch_comment:
                 # clean previous IDA comment by replacing it with ''
                 new_comment = orig_comment.replace(patch_comment, '')
-
-            if new_comment is not None:
                 idc.MakeComm(address, new_comment)
-        elif padding is not None: # we are patching
-            # save this patching for future "undo", but with empty patch comment
-            patch_info.append((address, assembly, p_orig_data, None))
 
         return plen
 
