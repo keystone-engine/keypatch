@@ -1651,7 +1651,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                                 print("Keypatch: FAILED to revert changes of {0:d} byte(s) at 0x{1:X} [{2}]".format(
                                                     plen, addr_begin, to_hexstr(p_orig_data)))
                     else:
-                        print("Keypatch: successfully filled range [0x{0:X}:0x{1:X}] ({2} bytes) with \"{3}\", replacing \"{4}\"".format(
+                        print("Keypatch: successfully filled range [0x{0:X}:0x{1:X}] ({2} bytes) with \"{3}\", replaced \"{4}\"".format(
                                 addr_begin, addr_end - 1, addr_end - addr_begin, assembly, '; '.join(orig_asm)))
 
                         if kp_reanalyze:
@@ -1667,9 +1667,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                         if comment:
                             if orig_comment == None:
                                 orig_comment = ''
-                                new_patch_comment = "Keypatch modified this from:\n  {0}".format('\n  '.join(orig_asm))
+                                new_patch_comment = "Keypatch filled range [0x{0:X}:0x{1:X}] ({2} bytes), replaced:\n  {3}".format(addr_begin, addr_end - 1, addr_end - addr_begin, '\n  '.join(orig_asm))
                             else:
-                                new_patch_comment = "\nKeypatch modified this from:\n  {0}".format('\n  '.join(orig_asm))
+                                new_patch_comment = "\nKeypatch filled range [0x{0:X}:0x{1:X}] ({2} bytes), replaced:\n  {3}".format(addr_begin, addr_end - 1, addr_end - addr_begin, '\n  '.join(orig_asm))
 
                             new_comment = "{0}{1}".format(orig_comment, new_patch_comment)
                             idc.MakeComm(addr_begin, new_comment)
