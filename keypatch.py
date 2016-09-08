@@ -1651,8 +1651,8 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                                 print("Keypatch: FAILED to revert changes of {0:d} byte(s) at 0x{1:X} [{2}]".format(
                                                     plen, addr_begin, to_hexstr(p_orig_data)))
                     else:
-                        print("Keypatch: successfully filled range [0x{0:X}:0x{1:X}] with \"{2}\", replacing \"{3}\"".format(
-                                addr_begin, addr_end - 1, assembly, '; '.join(orig_asm)))
+                        print("Keypatch: successfully filled range [0x{0:X}:0x{1:X}] ({2} bytes) with \"{3}\", replacing \"{4}\"".format(
+                                addr_begin, addr_end - 1, addr_end - addr_begin, assembly, '; '.join(orig_asm)))
 
                         if kp_reanalyze:
                             # ask IDA to re-analyze the patched area
