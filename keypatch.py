@@ -1368,8 +1368,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         # use default values if not defined in config file
         self.opts['c_opt_padding'] = self.opts.get('c_opt_padding', 1)
         self.opts['c_opt_comment'] = self.opts.get('c_opt_comment', 2)
-        self.opts['c_opt_reanalyze'] = self.opts.get('c_opt_reanalyze', 4)
-        self.opts['c_opt_chk'] = self.opts.get('c_opt_chk', 7)
+        if 'c_opt_reanalyze' not in self.opts:
+            self.opts['c_opt_reanalyze'] = 4
+        self.opts['c_opt_chk'] = self.opts['c_opt_padding'] | self.opts['c_opt_comment'] | self.opts['c_opt_reanalyze']
 
     def init(self):
         global kp_initialized
