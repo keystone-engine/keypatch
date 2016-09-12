@@ -730,6 +730,7 @@ class Keypatch_Asm:
 
                 new_comment = "{0}{1}".format(orig_comment, new_patch_comment)
                 idc.MakeComm(address, new_comment)
+
             # save this patching for future "undo"
             patch_info.append((address, assembly, p_orig_data, new_patch_comment))
         else:   # we are reverting
