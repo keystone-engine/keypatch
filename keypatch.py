@@ -607,20 +607,17 @@ class Keypatch_Asm:
     def patch_raw(address, patch_data, len):
         ea = address
         orig_data = ''
-        invalid_value = False
 
         while ea < (address + len):
-            if not invalid_value:
-                orig_byte = idc.Byte(ea)
 
-                if not idc.hasValue(idc.GetFlags(ea)):
-                    # orig_byte = None from now for the rest of this loop
-                    print("Keypatch: WARNING: 0x{0:X} has no defined value. ".format(ea))
-                    invalid_value = True
-                else:
-                    orig_data += chr(orig_byte)
+            if not idc.hasValue(idc.GetFlags(ea)):
+                print("Keypatch: FAILED to read data at 0x{0:X}".format(ea))
+                break
 
+            orig_byte = idc.Byte(ea)
+            orig_data += chr(orig_byte)
             patch_byte = ord(patch_data[ea - address])
+
             if patch_byte != orig_byte:
                 # patch one byte
                 if idaapi.patch_byte(ea, patch_byte) != 1:
@@ -1593,7 +1590,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                         elif length == -1:
                             idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(address))
                         elif length == -2:
-                            idc.Warninig("ERROR: Keypatch can't read original data at 0x{0:X}, try again".format(address))
+                            idc.Warning("ERROR: Keypatch can't read original data at 0x{0:X}, try again".format(address))
 
                 except KsError as e:
                     print("Keypatch Error: {0}".format(e))
