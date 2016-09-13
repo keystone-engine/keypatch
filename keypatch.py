@@ -745,6 +745,9 @@ class Keypatch_Asm:
 
         return plen
 
+    # fill a range of code [addr_begin, addr_end].
+    # return the length of patched area
+    # 0 = wrong assembly, -1 = failed to patch
     def fill_code(self, addr_begin, addr_end, assembly, syntax, padding, save_origcode, orig_asm=None):
         (encoding, _) =  self.assemble(assembly, addr_begin, syntax=syntax)
 
@@ -782,7 +785,6 @@ class Keypatch_Asm:
                 assembly_new += ["nop"]
             patch_data = patch_data.ljust(size, X86_NOP)
 
-
         (plen, p_orig_data) = self.patch(addr_begin, patch_data, len(patch_data))
         if plen == None:
             # failed to patch
@@ -799,7 +801,6 @@ class Keypatch_Asm:
             new_comment = "{0}{1}".format(orig_comment, new_patch_comment)
             idc.MakeComm(addr_begin, new_comment)
 
-
         print("Keypatch: successfully filled range [0x{0:X}:0x{1:X}] ({2} bytes) with \"{3}\", replaced \"{4}\"".format(
                     addr_begin, addr_end - 1, addr_end - addr_begin, assembly, '; '.join(orig_asm)))
 
@@ -807,6 +808,7 @@ class Keypatch_Asm:
         patch_info.append((addr_begin, '\n  '.join(assembly_new), p_orig_data, new_patch_comment))
 
         return plen
+
 
     ### Form helper functions
     @staticmethod
@@ -1528,7 +1530,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         else:
             (address, assembly, p_orig_data, patch_comment) = patch_info[-1]
 
-            #undo the patch
+            # undo the patch
             self.kp_asm.patch_code(address, None, None, None, None, orig_asm=[assembly], patch_data=p_orig_data, patch_comment=patch_comment, undo=True)
             del(patch_info[-1])
 
@@ -1578,7 +1580,6 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                             self.kp_asm.ida_get_disasm(address), address, assembly))
 
                     length = self.kp_asm.patch_code(address, raw_assembly, syntax, padding, comment, None)
-
                     if length > 0:
                         # update start address pointing to the next instruction
                         init_assembly = None
@@ -1639,8 +1640,6 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     print("ERROR: Keypatch failed to process this input '{0}'".format(assembly))
                 elif length == -1:
                     idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(addr_begin))
-                elif length == -2:
-                    idc.Warning("ERROR: Keypatch can't read original data at 0x{0:X}, try again".format(addr_begin))
 
             except KsError as e:
                 print("Keypatch Error: {0}".format(e))
