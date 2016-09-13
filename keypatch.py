@@ -764,6 +764,8 @@ class Keypatch_Asm:
         # save original comment at addr_begin
         # TODO: save comments in this range, but how to interleave them?
         orig_comment = idc.Comment(addr_begin)
+        if orig_comment == None:
+            orig_comment = ''
 
         patch_data = ""
         assembly_new = []
@@ -793,8 +795,7 @@ class Keypatch_Asm:
         new_patch_comment = ''
         # append original instruction to comments
         if save_origcode == True:
-            if orig_comment == None:
-                orig_comment = ''
+            if orig_comment == '':
                 new_patch_comment = "Keypatch filled range [0x{0:X}:0x{1:X}] ({2} bytes), replaced:\n  {3}".format(addr_begin, addr_end - 1, addr_end - addr_begin, '\n  '.join(orig_asm))
             else:
                 new_patch_comment = "\nKeypatch filled range [0x{0:X}:0x{1:X}] ({2} bytes), replaced:\n  {3}".format(addr_begin, addr_end - 1, addr_end - addr_begin, '\n  '.join(orig_asm))
