@@ -602,6 +602,7 @@ class Keypatch_Asm:
 
 
     # patch at address, return the number of written bytes & original data
+    # this process can fail in some cases
     @staticmethod
     def patch_raw(address, patch_data, len):
         ea = address
@@ -613,6 +614,7 @@ class Keypatch_Asm:
                 orig_byte = idc.Byte(ea)
 
                 if not idc.hasValue(idc.GetFlags(ea)):
+                    # orig_byte = None from now for the rest of this loop
                     print("Keypatch: WARNING: 0x{0:X} has no defined value. ".format(ea))
                     invalid_value = True
                 else:
@@ -628,6 +630,7 @@ class Keypatch_Asm:
         return (ea - address, orig_data)
 
     # patch at address, return the number of written bytes & original data
+    # on patch failure, we revert to the original code
     def patch(self, address, patch_data, len):
         # save original function end to fix IDA re-analyze issue after patching
         orig_func_end = idc.GetFunctionAttr(address, idc.FUNCATTR_END)
