@@ -747,15 +747,17 @@ class Keypatch_Asm:
 
     # fill a range of code [addr_begin, addr_end].
     # return the length of patched area
-    # 0 = wrong assembly, -1 = failed to patch
+    # on failure, return 0 = wrong input, -1 = failed to patch
     def fill_code(self, addr_begin, addr_end, assembly, syntax, padding, save_origcode, orig_asm=None):
+        # treat input as assembly code first
         (encoding, _) =  self.assemble(assembly, addr_begin, syntax=syntax)
 
         if encoding is None:
-            # try to convert hexcode string
+            # input might be a hexcode string. try to convert it to raw bytes
             encoding = convert_hexstr(assembly)
 
         if encoding == None:
+            # invalid input: this is neither assembly nor hexcode string
             return 0
 
         # save original assembly code before overwritting them
