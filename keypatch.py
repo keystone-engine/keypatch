@@ -1638,17 +1638,13 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     addr_begin, addr_end - 1, assembly))
 
                 length = self.kp_asm.fill_code(addr_begin, addr_end - 1, raw_assembly, syntax, padding, comment, None)
-
-                if length > 0:
-                    pass
-                else:
-                    if length == 0:
-                        idc.Warning("ERROR: Keypatch failed to process this input.")
-                        print("ERROR: Keypatch failed to process this input '{0}'".format(assembly))
-                    elif length == -1:
-                        idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(addr_begin))
-                    elif length == -2:
-                        idc.Warning("ERROR: Keypatch can't read original data at 0x{0:X}, try again".format(addr_begin))
+                if length == 0:
+                    idc.Warning("ERROR: Keypatch failed to process this input.")
+                    print("ERROR: Keypatch failed to process this input '{0}'".format(assembly))
+                elif length == -1:
+                    idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(addr_begin))
+                elif length == -2:
+                    idc.Warning("ERROR: Keypatch can't read original data at 0x{0:X}, try again".format(addr_begin))
 
             except KsError as e:
                 print("Keypatch Error: {0}".format(e))
