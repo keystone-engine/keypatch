@@ -1589,8 +1589,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     else:
                         init_assembly = f.c_assembly.value
                         if length == 0:
-                            idc.Warning("ERROR: Keypatch failed to process this input.")
-                            print("ERROR: Keypatch failed to process this input '{0}'".format(assembly))
+                            idc.Warning("ERROR: Keypatch found invalid assembly [{0}]".format(assembly))
                         elif length == -1:
                             idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(address))
                         elif length == -2:
@@ -1643,7 +1642,8 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     pass
                 else:
                     if length == 0:
-                        idc.Warning("ERROR: Keypatch found invalid assembly [{0}]".format(assembly))
+                        idc.Warning("ERROR: Keypatch failed to process this input.")
+                        print("ERROR: Keypatch failed to process this input '{0}'".format(assembly))
                     elif length == -1:
                         idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(addr_begin))
                     elif length == -2:
