@@ -630,7 +630,7 @@ class Keypatch_Asm:
         return (ea - address, orig_data)
 
     # patch at address, return the number of written bytes & original data
-    # on patch failure, we revert to the original code
+    # on patch failure, we revert to the original code, then return (None, None)
     def patch(self, address, patch_data, len):
         # save original function end to fix IDA re-analyze issue after patching
         orig_func_end = idc.GetFunctionAttr(address, idc.FUNCATTR_END)
@@ -717,7 +717,6 @@ class Keypatch_Asm:
             patch_len = len(patch_data)
 
         (plen, p_orig_data) = self.patch(address, patch_data, patch_len)
-
         if plen == None:
             # failed to patch
             return -1
@@ -788,7 +787,6 @@ class Keypatch_Asm:
 
 
         (plen, p_orig_data) = self.patch(addr_begin, patch_data, len(patch_data))
-
         if plen == None:
             # failed to patch
             return -1
