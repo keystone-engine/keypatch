@@ -691,7 +691,7 @@ class Keypatch_Asm:
             patch_data = ''.join(chr(c) for c in encoding)
 
             if patch_data == orig_encoding:
-                print("Keypatch: no need to patch, same encoding data [{0}] at 0x{1:X}".format(to_hexstr(orig_encoding), address))
+                #print("Keypatch: no need to patch, same encoding data [{0}] at 0x{1:X}".format(to_hexstr(orig_encoding), address))
                 return orig_len
 
             # for now, only support NOP padding on Intel CPU
@@ -1401,9 +1401,9 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             self.opts = json.load(f)
             f.close()
         except IOError:
-            print("Keypatch: use default configuration.")
+            print("Keypatch: FAILED to load config file. Use default setup now.")
         except Exception as e:
-            print("Keypatch: exception: {0}".format(str(e)))
+            print("Keypatch: FAILED to load config file, with exception: {0}".format(str(e)))
 
         # use default values if not defined in config file
         if 'c_opt_padding' not in self.opts:
@@ -1484,7 +1484,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         try:
             json.dump(self.opts, open(KP_CFGFILE, "wt"))
         except Exception as e:
-            print("Keypatch: exception: {0}".format(str(e)))
+            print("Keypatch: FAILED to save config file, with exception: {0}".format(str(e)))
         else:
             print("Keypatch: configuration is saved to {0}".format(KP_CFGFILE))
 
@@ -1521,7 +1521,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         else:
             # fail to download
             idc.Warning("ERROR: Keypatch failed to connect to internet (Github). Try again later.")
-            print("ERROR: Keypatch failed to connect to Github to check for latest update. Try again later.")
+            print("Keypatch: FAILED to connect to Github to check for latest update. Try again later.")
 
     # handler for Undo menu
     def undo(self):
@@ -1639,7 +1639,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 length = self.kp_asm.fill_code(addr_begin, addr_end - 1, raw_assembly, syntax, padding, comment, None)
                 if length == 0:
                     idc.Warning("ERROR: Keypatch failed to process this input.")
-                    print("ERROR: Keypatch failed to process this input '{0}'".format(assembly))
+                    print("Keypatch: FAILED to process this input '{0}'".format(assembly))
                 elif length == -1:
                     idc.Warning("ERROR: Keypatch failed to patch binary at 0x{0:X}!".format(addr_begin))
 
