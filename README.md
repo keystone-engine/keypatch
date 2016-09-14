@@ -18,6 +18,7 @@ If you find any issues, please [report](http://keystone-engine.org/contact).
 
 Sometimes we want to patch the binary while analyzing it in IDA, but unfortunately the built-in asssembler of IDA Pro is not adequate.
 
+- This tool is not friendly and without many options that would make the life of reverser easier.
 - Only X86 assembler is available. Support for all other architectures is totally missing.
 - The X86 assembler is not in a good shape, either: it cannot understand many modern Intel instructions.
 
