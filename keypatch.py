@@ -1636,7 +1636,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 print("Keypatch: attempting to fill range [0x{0:X}:0x{1:X}] with \"{2}\"".format(
                     addr_begin, addr_end - 1, assembly))
 
-                length = self.kp_asm.fill_code(addr_begin, addr_end - 1, raw_assembly, syntax, padding, comment, None)
+                length = self.kp_asm.fill_code(addr_begin, addr_end, raw_assembly, syntax, padding, comment, None)
                 if length == 0:
                     idc.Warning("ERROR: Keypatch failed to process this input.")
                     print("Keypatch: FAILED to process this input '{0}'".format(assembly))
