@@ -677,6 +677,8 @@ class Keypatch_Asm:
         if orig_comment == None:
             orig_comment = ''
 
+        nop_comment = ""
+        padding_len = 0
         if not undo:
             # we are patching via Patcher
             (orig_encoding, orig_len) = self.ida_get_item(address)
@@ -697,16 +699,20 @@ class Keypatch_Asm:
             # for now, only support NOP padding on Intel CPU
             if padding and self.arch == KS_ARCH_X86:
                 if patch_len < orig_len:
+                    padding_len = orig_len - patch_len
                     patch_len = orig_len
                     patch_data = patch_data.ljust(patch_len, X86_NOP)
                 elif patch_len > orig_len:
                     patch_end = address + patch_len - 1
                     ins_end = ItemEnd(patch_end)
-                    padding_len = ins_end - patch_end
+                    padding_len = ins_end - patch_end - 1
 
                     if padding_len > 0:
                         patch_len = ins_end - address
                         patch_data = patch_data.ljust(patch_len, X86_NOP)
+
+                if padding_len > 0:
+                    nop_comment = "\nKeypatch padded NOP to next boundary: {0} bytes".format(padding_len)
 
             orig_asm = self.ida_get_disasm_range(address, address + patch_len)
         else:
@@ -723,15 +729,19 @@ class Keypatch_Asm:
             if save_origcode == True:
                 # append original instruction to comments
                 if orig_comment == '':
-                    new_patch_comment = "Keypatch modified this from:\n  {0}".format('\n  '.join(orig_asm))
+                    new_patch_comment = "Keypatch modified this from:\n  {0}{1}".format('\n  '.join(orig_asm), nop_comment)
                 else:
-                    new_patch_comment = "\nKeypatch modified this from:\n  {0}".format('\n  '.join(orig_asm))
+                    new_patch_comment = "\nKeypatch modified this from:\n  {0}{1}".format('\n  '.join(orig_asm), nop_comment)
 
                 new_comment = "{0}{1}".format(orig_comment, new_patch_comment)
                 idc.MakeComm(address, new_comment)
 
-            print("Keypatch: successfully patched {0:d} byte(s) at 0x{1:X} from [{2}] to [{3}]".format(plen,
+            if padding_len == 0:
+                print("Keypatch: successfully patched {0:d} byte(s) at 0x{1:X} from [{2}] to [{3}]".format(plen,
                                         address, to_hexstr(p_orig_data), to_hexstr(patch_data)))
+            else:
+                print("Keypatch: successfully patched {0:d} byte(s) at 0x{1:X} from [{2}] to [{3}], with {4} byte(s) NOP padded".format(plen,
+                                        address, to_hexstr(p_orig_data), to_hexstr(patch_data), padding_len))
             # save this patching for future "undo"
             patch_info.append((address, assembly, p_orig_data, new_patch_comment))
         else:   # we are reverting
