@@ -1458,7 +1458,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl-Alt-K)", "", 0, self.patcher, None)
 
             print("=" * 80)
-            print("Keypatch registered IDA plugin {0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
+            print("Keypatch assembler v{0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
             print("Keypatch is using Keystone v{0}".format(keystone.__version__))
             print("Keypatch Patcher's shortcut key is Ctrl-Alt-K")
             print("Use the same hotkey Ctrl-Alt-K to open 'Fill Range' window on a selected range of code")
