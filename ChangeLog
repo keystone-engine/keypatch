@@ -1,5 +1,12 @@
 This file details the changelog of Keypatch (http://keystone-engine.org/keypatch).
 
+
+---------------------------------
+Version 2.0.1: September 15th, 2016
+
+- Fix an off-by-one bug in Fill-Range function.
+
+
 ---------------------------------
 Version 2.0: September 14th, 2016
 
