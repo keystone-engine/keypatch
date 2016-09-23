@@ -15,6 +15,10 @@ See [README.md](README.md) for a complete guideline of Keypatch.
 - Enter a new assembly instruction to the Assembly control.
 - Click button `Patch` to change the original instruction to the new instruction.
 
+<p align="center">
+<img src="screenshots/keypatch_patcher.png" height="480" />
+</p>
+
 
 ### 2. Use **Fill Range** tool
 
@@ -26,6 +30,10 @@ See [README.md](README.md) for a complete guideline of Keypatch.
   also enter a string in hexcode format, such as "0x90", "90, 91", "AAh", etc.
 - Click button `Patch` to fill the selected range with the input above.
 
+<p align="center">
+<img src="screenshots/keypatch_fillrange.png" height="480" />
+</p>
+
 
 ### 3. Revert (undo) the last patching
 
@@ -33,12 +41,16 @@ See [README.md](README.md) for a complete guideline of Keypatch.
   IDA window, then choose from the popup menu `Keypatch | Undo last patching`
   to revert (undo) the last action.
 
+<p align="center">
+<img src="screenshots/keypatch_menupopup.png" height="300" />
+</p>
+
 
 ### 4. Save the modification
 
-- After all the patching done in tutorial 1, 2, 3 above, save the result by choosing
-  menu `Edit | Patch program | Apply patches to input file`. Note that this action
-  really changes the binary, so be sure this is what you desire.
+- After all the patching done in tutorial 1, 2, 3 above, save all the modifications
+  by choosing menu `Edit | Patch program | Apply patches to input file`. Note that
+  this really changes the original binary, so be sure this is what you desire.
 
 
 ### 5. Use **Assembler** tool
@@ -49,6 +61,10 @@ See [README.md](README.md) for a complete guideline of Keypatch.
   appearing in the "Encode" control. Note that unlike "Patcher" & "Fill Range"
   tools above, this does not modify the binary.
 
+<p align="center">
+<img src="screenshots/keypatch_assembler.png" height="400" />
+</p>
+
 
 ### 6. Check for new update of Keypatch
 
@@ -57,6 +73,10 @@ See [README.md](README.md) for a complete guideline of Keypatch.
   (released by Keypatch developers) are reported.
 - Click button "Open Keypatch Website" if you want to visit the Keypatch
   homepage to download the latest version.
+
+<p align="center">
+<img src="screenshots/keypatch_update.png" height="160" />
+</p>
 
 
 ### 7. Verify the current versions of Keypatch & Keystone engine
