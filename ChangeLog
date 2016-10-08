@@ -1,0 +1,39 @@
+This file details the changelog of Keypatch (http://keystone-engine.org/keypatch).
+
+
+---------------------------------
+Version 2.0.1: September 15th, 2016
+
+- Fix an off-by-one bug in Fill-Range function.
+
+
+---------------------------------
+Version 2.0: September 14th, 2016
+
+
+[ Core ]
+
+- Save (at termination) & load configuration (at boot time) from local director.
+- Add accelerator keys for editable controls in Patcher & Assembler forms.
+- Optionally append original instructions - before patching - in IDA comment.
+- Add "Undo" feature, so it is possible to revert a modification in the past.
+- Add "Check for update" & "About" menus.
+- Better support for Python 2.6 & older IDA versions (confirmed with v6.4 & v6.6).
+- Support popup menu (right-mouse click).
+- Add "Fill Range" feature.
+
+[ Arm ]
+
+- Handle Arm mode better. Cortex-M3 binaries are now supported.
+- Fix a bug in Thumb mode.
+
+[ Docs ]
+
+- Better guideline for installing Keypatch on Linux 64-bit.
+- Add TUTORIAL.md, a quick tutorial for new users of Keypatch.
+
+
+----------------------------------
+[Version 1.0]: August 3rd, 2016
+
+- Initial public release.

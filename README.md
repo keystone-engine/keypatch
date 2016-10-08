@@ -1,12 +1,14 @@
 Keypatch
 ========
 
-Keypatch is a IDA Pro plugin for [Keystone Assembler Engine](http://keystone-engine.org).
+Keypatch is [the award winning plugin](https://www.hex-rays.com/contests/2016/index.shtml) of [IDA Pro](https://www.hex-rays.com/products/ida/) for [Keystone Assembler Engine](http://keystone-engine.org).
 
-Keypatch consists of 2 tools inside.
+Keypatch consists of 3 tools inside.
 
-- **Patcher**: this allows you to type in assembly to directly patch your binary.
+- **Patcher** & **Fill Range**: these allow you to type in assembly to directly patch your binary.
 - **Assembler**: this interactive tool let you enter assembly & get back instruction encoding.
+
+See [this quick tutorial](TUTORIAL.md) for how to use Keypatch, and [this slides](Keypatch-slides.pdf) for how it is implemented.
 
 Keypatch is confirmed to work on IDA Pro version 6.4, 6.6, 6.8, 6.9, 6.95 but should work flawlessly on older versions.
 If you find any issues, please [report](http://keystone-engine.org/contact).
@@ -18,6 +20,7 @@ If you find any issues, please [report](http://keystone-engine.org/contact).
 
 Sometimes we want to patch the binary while analyzing it in IDA, but unfortunately the built-in asssembler of IDA Pro is not adequate.
 
+- This tool is not friendly and without many options that would make the life of reverser easier.
 - Only X86 assembler is available. Support for all other architectures is totally missing.
 - The X86 assembler is not in a good shape, either: it cannot understand many modern Intel instructions.
 
@@ -26,6 +29,7 @@ Keypatch was developed to solve this problem. Thanks to the power of [Keystone](
 - Cross-architecture: support Arm, Arm64 (AArch64/Armv8), Hexagon, Mips, PowerPC, Sparc, SystemZ & X86 (include 16/32/64bit).
 - Cross-platform: work everywhere that IDA works, which is on Windows, MacOS, Linux.
 - Based on Python, so it is easy to install as no compilation is needed.
+- User-friendly: automatically add comments to patched code, and allow reverting (undo) modification.
 - Open source under GPL v2.
 
 Keypatch can be the missing piece in your toolset of reverse engineering.
@@ -51,6 +55,8 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 
 ### 3. Usage
 
+- For a quick tutorial, see [TUTORIAL.md](TUTORIAL.md). For a complete description of all of the features of Keypatch, keep reading.
+
 - To patch your binary, press hotkey `CTRL+ALT+K` inside IDA to open **Keypatch Patcher** dialog.
     - The original assembly, encode & instruction size will be displayed in 3 controls at the top part of the form.
     - Choose the syntax, type new assembly instruction in the `Assembly` box (you can use IDA symbols).
@@ -61,7 +67,13 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
         - By default, Keypatch appends the modified instruction with the information of the original code (before being patched). Uncheck the choice `Save original instructions in IDA comment` to disable this feature.
     - By default, the modification you made is only recorded in the IDA database. To apply these changes to the original binary (thus overwrite it), choose menu `Edit | Patch program | Apply patches to input file`.
 <p align="center">
-<img src="screenshots/keypatch_patcher.png" height="360" />
+<img src="screenshots/keypatch_patcher.png" height="460" />
+</p>
+
+- To fill a range of code with an instruction, select the range, then either press hotkey `CTRL+ALT+K`, or choose menu `Edit | Keypatch | Fill Range`.
+    - In the `Assembly` box, you can either enter assembly code, or raw hexcode. Some examples of acceptable raw hexcode are `90`, `aa bb`, `0xAA, 0xBB`.
+<p align="center">
+<img src="screenshots/keypatch_fillrange.png" height="460" />
 </p>
 
 - To revert (undo) the last patching, choose menu `Edit | Keypatch | Undo last patching`.
@@ -71,10 +83,16 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
     - Keypatch would *automatically* update the encoding in the `Encode` box while you are typing, without waiting for `ENTER` keystroke.
 
 <p align="center">
-<img src="screenshots/keypatch_assembler.png" height="300" />
+<img src="screenshots/keypatch_assembler.png" height="360" />
 </p>
 
 - To check for new version of Keypatch, choose menu `Edit | Keypatch | Check for update`.
+
+- At any time, you can also access to all the above Keypatch functionalities just by right-click in IDA screen, and choose from the popup menu.
+
+<p align="center">
+<img src="screenshots/keypatch_menupopup.png" height="300" />
+</p>
 
 --------------
 
@@ -105,6 +123,12 @@ Install the core & Python module of Keystone with the following command:
 $ sudo pip install keystone-engine
 ```
 
+In case IDA still complains "ImportError: No module named keystone" when Keypatch is loading, then do the following step to copy Keystone Python binding to IDA directory. (replace `6.8` with your actual IDA version)
+
+```
+$ sudo cp -r /Library/Python/2.7/site-packages/keystone /Applications/IDA\ Pro\ 6.8/idaq.app/Contents/MacOS/python
+```
+
 #### A3. Linux
 
 First of all, be sure that your machine already have Cmake installed. On Ubuntu, you can install Cmake with:
@@ -131,11 +155,23 @@ After having multilib dependencies, run the following commands in the source dir
 $ mkdir build
 $ cd build
 $ ../make-share.sh lib32 lib_only
-$ cd bindings/python
-$ sudo make install
 ```
 
-Finally, copy the 32-bit binaries at `build/llvm/lib/libkeystone.so.*` to the Python directory of IDA Pro, for example at `/opt/IDAPro6.4/python/`.
+Then copy Python bindings to IDA's Python directory, together with disutils from your distro's Python to IDA's Python, like following. (Use your actual IDA directory instead)
+
+```
+$ sudo cp -r bindings/python/keystone /opt/IDAPro6.8/python/
+$ sudo cp -r /usr/lib/python2.7/distutils /opt/IDAPro6.8/python/
+```
+
+Finally, copy the 32-bit libraries of Keystone to the Python directory of IDA Pro, like following.
+
+```
+$ sudo mkdir -p /opt/IDAPro6.8/python/lib/python2.7/dist-packages/keystone/
+$ sudo cp build/llvm/lib/libkeystone.so.* /opt/IDAPro6.8/python/lib/python2.7/dist-packages/keystone/
+```
+
+These complicated workarounds are necessary because IDA in Linux 64 bit doesn't use the system's Python.
 
 Done? Now go back to [section 2](#2-install) & install Keypatch for IDA Pro. Enjoy!
 
