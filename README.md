@@ -167,8 +167,7 @@ $ sudo cp -r /usr/lib/python2.7/distutils /opt/IDAPro6.8/python/
 Finally, copy the 32-bit libraries of Keystone to the Python directory of IDA Pro, like following.
 
 ```
-$ sudo mkdir -p /opt/IDAPro6.8/python/lib/python2.7/dist-packages/keystone/
-$ sudo cp build/llvm/lib/libkeystone.so.* /opt/IDAPro6.8/python/lib/python2.7/dist-packages/keystone/
+$ sudo cp build/llvm/lib/libkeystone.so.* /opt/IDAPro6.8/python/keystone/
 ```
 
 These complicated workarounds are necessary because IDA in Linux 64 bit doesn't use the system's Python.
