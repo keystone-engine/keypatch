@@ -1137,7 +1137,7 @@ class Keypatch_Assembler(Keypatch_Form):
         # create Assembler form
         Form.__init__(self,
             r"""STARTITEM {id:c_assembly}
-BUTTON YES NONE
+BUTTON YES* Search
 KEYPATCH:: Assembler
 
             {FormChangeCb}
@@ -1175,6 +1175,17 @@ KEYPATCH:: Assembler
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
+        
+        # handle the search button
+        if fid == -2:
+            address = 0
+            while address != idc.BADADDR:
+                address = idc.FindBinary(address, SEARCH_DOWN, self.GetControlValue(self.c_encoding))
+                if address == idc.BADADDR:
+                    break
+                idc.Jump(address)
+            return 1
+            
         # only Assembler mode allows to select arch+mode
         arch_id = self.GetControlValue(self.c_arch)
         (arch, mode) = self.kp_asm.get_arch_by_idx(arch_id)
