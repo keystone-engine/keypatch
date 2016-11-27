@@ -1128,6 +1128,41 @@ KEYPATCH:: Patcher
 
         return self.update_patchform(fid)
 
+# Search position chooser
+class SearchResultChooser(idaapi.Choose2):
+
+    def __init__(self, title, items, flags=0, width=None, height=None, embedded=False, modal=False):        
+        Choose2.__init__(
+            self,
+            title,
+            [ ["Address", idaapi.Choose2.CHCOL_HEX|40] ], #, ["Name", 30] ],
+            flags = flags,
+            width = width,
+            height = height,
+            embedded = embedded)
+        self.n = 0
+        self.items = items
+        self.selcount = 0
+        self.modal = modal
+        
+    def OnClose(self):
+        return
+
+    def OnSelectLine(self, n):
+        self.selcount += 1
+        idc.Jump(self.items[n][0])
+
+    def OnGetLine(self, n):
+        res = self.items[n]
+        res = [atoa(res[0])]
+        return res
+
+    def OnGetSize(self):
+        n = len(self.items)
+        return n
+
+    def show(self):
+        return self.Show(self.modal) >= 0
 
 # Assembler form
 class Keypatch_Assembler(Keypatch_Form):
@@ -1179,11 +1214,15 @@ KEYPATCH:: Assembler
         # handle the search button
         if fid == -2:
             address = 0
+            addresses = []
             while address != idc.BADADDR:
                 address = idc.FindBinary(address, SEARCH_DOWN, self.GetControlValue(self.c_encoding))
                 if address == idc.BADADDR:
                     break
-                idc.Jump(address)
+                addresses.append([address])
+                address = address + 1
+            c = SearchResultChooser("Searching for %s" % self.GetControlValue(self.c_raw_assembly), addresses)
+            r = c.show()
             return 1
             
         # only Assembler mode allows to select arch+mode
