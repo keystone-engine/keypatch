@@ -10,3 +10,5 @@ for some tips on IDA programming.
 
 Thanks Kaijern (Xwings) & Nguyen Van Luc for valuable feedback on
 the beta code.
+
+The search function was contributed by Stefan Esser of Sektioneins.
