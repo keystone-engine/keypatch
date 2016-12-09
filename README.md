@@ -6,7 +6,7 @@ Keypatch is [the award winning plugin](https://www.hex-rays.com/contests/2016/in
 Keypatch consists of 3 tools inside.
 
 - **Patcher** & **Fill Range**: these allow you to type in assembly to directly patch your binary.
-- **Assembler**: this interactive tool let you enter assembly & get back instruction encoding.
+- **Search**: this interactive tool let you search for assembly instructions in binary.
 
 See [this quick tutorial](TUTORIAL.md) for how to use Keypatch, and [this slides](Keypatch-slides.pdf) for how it is implemented.
 
@@ -78,9 +78,10 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
 
 - To revert (undo) the last patching, choose menu `Edit | Keypatch | Undo last patching`.
 
-- To do some code assembling (without overwritting binary), open **Keypatch Assembler** from menu `Edit | Keypatch | Assembler`.
-    - Choose the architecture, address, endian mode & syntax, then type assembly instruction in the `Assembly` box.
+- To search for assembly instructions (without overwritting binary), open **Keypatch Search** from menu `Edit | Keypatch | Search`.
+    - Choose the architecture, address, endian mode & syntax, then type assembly instructions in the `Assembly` box.
     - Keypatch would *automatically* update the encoding in the `Encode` box while you are typing, without waiting for `ENTER` keystroke.
+    - When you click `Search` button, Keypatch would look for all the occurences of the instructions, and show the result in a new form.
 
 <p align="center">
 <img src="screenshots/keypatch_assembler.png" height="360" />

@@ -6,7 +6,7 @@
 # Keypatch is released under the GPL v2. See COPYING for more information.
 # Find docs & latest version at http://keystone-engine.org/keypatch
 
-# This IDA plugin includes 3 tools inside: Patcher, Fill Range & Assembler.
+# This IDA plugin includes 3 tools inside: Patcher, Fill Range & Search.
 # Access to these tools via menu "Edit | Keypatch", or via right-click popup menu "Keypatch".
 
 # Hotkey Ctrl-Alt-K opens either Patcher or "Fill Range" window, depending on context.
@@ -865,8 +865,7 @@ class Keypatch_Asm:
     ### /Form helper functions
 
 
-# Dialog for interactive assembler & patcher
-# Common ancestor form to be shared between Patcher & Assembler
+# Common ancestor form to be derived by Patcher, FillRange & Search
 class Keypatch_Form(idaapi.Form):
     # prepare for form initializing
     def setup(self, kp_asm, address, assembly=None):
@@ -1128,9 +1127,9 @@ KEYPATCH:: Patcher
 
         return self.update_patchform(fid)
 
+
 # Search position chooser
 class SearchResultChooser(idaapi.Choose2):
-
     def __init__(self, title, items, flags=0, width=None, height=None, embedded=False, modal=False):        
         Choose2.__init__(
             self,
@@ -1144,7 +1143,7 @@ class SearchResultChooser(idaapi.Choose2):
         self.items = items
         self.selcount = 0
         self.modal = modal
-        
+
     def OnClose(self):
         return
 
@@ -1164,16 +1163,17 @@ class SearchResultChooser(idaapi.Choose2):
     def show(self):
         return self.Show(self.modal) >= 0
 
-# Assembler form
-class Keypatch_Assembler(Keypatch_Form):
+
+# Search form
+class Keypatch_Search(Keypatch_Form):
     def __init__(self, kp_asm, address, assembly=None):
         self.setup(kp_asm, address, assembly)
 
-        # create Assembler form
+        # create Search form
         Form.__init__(self,
             r"""STARTITEM {id:c_assembly}
 BUTTON YES* Search
-KEYPATCH:: Assembler
+KEYPATCH:: Search
 
             {FormChangeCb}
             <A~r~ch       :{c_arch}>
@@ -1210,7 +1210,6 @@ KEYPATCH:: Assembler
 
     # callback to be executed when any form control changed
     def OnFormChange(self, fid):
-        
         # handle the search button
         if fid == -2:
             address = 0
@@ -1224,8 +1223,8 @@ KEYPATCH:: Assembler
             c = SearchResultChooser("Searching for %s" % self.GetControlValue(self.c_raw_assembly), addresses)
             r = c.show()
             return 1
-            
-        # only Assembler mode allows to select arch+mode
+
+        # only Search mode allows to select arch+mode
         arch_id = self.GetControlValue(self.c_arch)
         (arch, mode) = self.kp_asm.get_arch_by_idx(arch_id)
 
@@ -1274,7 +1273,7 @@ KEYPATCH:: Assembler
 # About form
 class About_Form(idaapi.Form):
     def __init__(self, version):
-        # create Assembler form
+        # create About form
         Form.__init__(self,
             r"""STARTITEM 0
 BUTTON YES* Open Keypatch Website
@@ -1305,7 +1304,7 @@ KEYPATCH:: About
 # Check-for-update form
 class Update_Form(idaapi.Form):
     def __init__(self, version, message):
-        # create Assembler form
+        # create Update form
         Form.__init__(self,
             r"""STARTITEM 0
 BUTTON YES* Open Keypatch Website
@@ -1392,10 +1391,10 @@ try:
             self.plugin.undo()
             return 1
 
-    # context menu for Assembler
-    class Kp_MC_Assembler(Kp_Menu_Context):
+    # context menu for Search
+    class Kp_MC_Search(Kp_Menu_Context):
         def activate(self, ctx):
-            self.plugin.assembler()
+            self.plugin.search()
             return 1
 
     # context menu for Check Update
@@ -1429,7 +1428,7 @@ class Hooks(idaapi.UI_Hooks):
                 idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
                 idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
                 idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Assembler.get_name(), 'Keypatch/')
+                idaapi.attach_action_to_popup(form, popup, Kp_MC_Search.get_name(), 'Keypatch/')
                 idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
                 idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
                 idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
@@ -1482,7 +1481,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             Kp_MC_Patcher.register(self, "Patcher    (Ctrl-Alt-K)")
             Kp_MC_Fill_Range.register(self, "Fill Range")
             Kp_MC_Undo.register(self, "Undo last patching")
-            Kp_MC_Assembler.register(self, "Assembler")
+            Kp_MC_Search.register(self, "Search")
             Kp_MC_Updater.register(self, "Check for update")
             Kp_MC_About.register(self, "About")
         except:
@@ -1501,7 +1500,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Check for update", "", 1, self.updater, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "Assembler", "", 1, self.assembler, None)
+                idaapi.add_menu_item("Edit/Keypatch/", "Search", "", 1, self.search, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
                 idaapi.add_menu_item("Edit/Keypatch/", "Fill Range", "", 1, self.fill_range, None)
@@ -1512,18 +1511,18 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                 idaapi.add_menu_item("Edit/Patch program/", "-", "", 0, self.menu_null, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: About", "", 0, self.about, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update", "", 0, self.updater, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Assembler", "", 0, self.assembler, None)
+                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Search", "", 0, self.search, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill Range", "", 0, self.fill_range, None)
                 idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl-Alt-K)", "", 0, self.patcher, None)
 
             print("=" * 80)
-            print("Keypatch assembler v{0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
+            print("Keypatch v{0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
             print("Keypatch is using Keystone v{0}".format(keystone.__version__))
             print("Keypatch Patcher's shortcut key is Ctrl-Alt-K")
             print("Use the same hotkey Ctrl-Alt-K to open 'Fill Range' window on a selected range of code")
             print("To revert (undo) the last patching, choose menu Edit | Keypatch | Undo last patching")
-            print("Keypatch Assembler is available from menu Edit | Keypatch | Assembler")
+            print("Keypatch Search is available from menu Edit | Keypatch | Search")
             print("Find more information about Keypatch at http://keystone-engine.org/keypatch")
 
             self.load_configuration()
@@ -1596,10 +1595,10 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             self.kp_asm.patch_code(address, None, None, None, None, orig_asm=[assembly], patch_data=p_orig_data, patch_comment=patch_comment, undo=True)
             del(patch_info[-1])
 
-    # handler for Assembler menu
-    def assembler(self):
+    # handler for Search menu
+    def search(self):
         address = idc.ScreenEA()
-        f = Keypatch_Assembler(self.kp_asm, address)
+        f = Keypatch_Search(self.kp_asm, address)
         f.Execute()
         f.Free()
 
