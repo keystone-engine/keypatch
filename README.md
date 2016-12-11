@@ -84,7 +84,7 @@ Keypatch can be the missing piece in your toolset of reverse engineering.
     - When you click `Search` button, Keypatch would look for all the occurences of the instructions, and show the result in a new form.
 
 <p align="center">
-<img src="screenshots/keypatch_assembler.png" height="360" />
+<img src="screenshots/keypatch_search.png" height="360" />
 </p>
 
 - To check for new version of Keypatch, choose menu `Edit | Keypatch | Check for update`.

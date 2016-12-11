@@ -1134,7 +1134,7 @@ class SearchResultChooser(idaapi.Choose2):
         Choose2.__init__(
             self,
             title,
-            [ ["Address", idaapi.Choose2.CHCOL_HEX|40] ], #, ["Name", 30] ],
+            [["Address", idaapi.Choose2.CHCOL_HEX|40]],
             flags = flags,
             width = width,
             height = height,
@@ -1220,7 +1220,7 @@ KEYPATCH:: Search
                     break
                 addresses.append([address])
                 address = address + 1
-            c = SearchResultChooser("Searching for %s" % self.GetControlValue(self.c_raw_assembly), addresses)
+            c = SearchResultChooser("Searching for [{0}]".format(self.GetControlValue(self.c_raw_assembly)), addresses)
             r = c.show()
             return 1
 
