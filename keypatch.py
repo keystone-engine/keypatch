@@ -24,7 +24,8 @@ from keystone import *
 
 
 # bleeding-edge version
-VERSION = "2.0.1"
+# on a new release, this should be sync with VERSION_STABLE file
+VERSION = "2.1"
 
 
 MAX_INSTRUCTION_STRLEN = 64
