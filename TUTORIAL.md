@@ -53,16 +53,19 @@ See [README.md](README.md) for a complete guideline of Keypatch.
   this really changes the original binary, so be sure this is what you desire.
 
 
-### 5. Use **Assembler** tool
+### 5. Use **Search** tool
 
-- Open the Assembler dialog by either right-click in IDA window, then choose from
-  the popup menu `Keypatch | Assembler`. Or choose from the main menu `Edit | Keypatch | Assembler`.
-- Enter a new assembly instruction in the Assembly control, then see the encoding
-  appearing in the "Encode" control. Note that unlike "Patcher" & "Fill Range"
-  tools above, this does not modify the binary.
+- Open the Search dialog by either right-click in IDA window, then choose from
+  the popup menu `Keypatch | Search`. Or choose from the main menu `Edit | Keypatch | Search`.
+- Enter assembly instructions in the Assembly control, then click "Search" to search
+  for these instructions in code section. Keypatch would show the result in a new window.
+  in which you can double-click each address to jump to the related code.
+
+  Note that it is possible to enter more than one assembly instruction, and separating
+  them by semi-colons signs (ie `;`).
 
 <p align="center">
-<img src="screenshots/keypatch_assembler.png" height="400" />
+<img src="screenshots/keypatch_search.png" height="400" />
 </p>
 
 
