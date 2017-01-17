@@ -2,6 +2,16 @@ This file details the changelog of Keypatch (http://keystone-engine.org/keypatch
 
 
 ---------------------------------
+Version 2.1: January 17th, 2017
+
+- Better documentation for Linux & Windows installs.
+- Added a new function to search for assembly instructions, so it is easy to grep
+  for ROP gadgets in the binary. This will be helpful for exploitation writers.
+- Removed the "Assembler" function, which is redundant since now you can also do
+  that with the "Search" function above.
+
+
+---------------------------------
 Version 2.0.1: September 15th, 2016
 
 - Fix an off-by-one bug in Fill-Range function.
