@@ -160,6 +160,7 @@ class Keypatch_Asm:
         # heuristically detect hardware setup
         info = idaapi.get_inf_structure()
         cpuname = info.procName.lower()
+        #print("Keypatch MF = %s" %idaapi.cvar.inf.mf)
         if cpuname == "metapc":
             arch = KS_ARCH_X86
             if info.is_64bit():
@@ -172,14 +173,17 @@ class Keypatch_Asm:
             # ARM or ARM64
             if info.is_64bit():
                 arch = KS_ARCH_ARM64
-                mode = KS_MODE_LITTLE_ENDIAN
+                if idaapi.cvar.inf.mf:
+                    mode = KS_MODE_BIG_ENDIAN
+                else:
+                    mode = KS_MODE_LITTLE_ENDIAN
             else:
                 arch = KS_ARCH_ARM
                 # either big-endian or little-endian
-                if cpuname == "arm":
-                    mode = KS_MODE_ARM | KS_MODE_LITTLE_ENDIAN
-                else:
+                if idaapi.cvar.inf.mf:
                     mode = KS_MODE_ARM | KS_MODE_BIG_ENDIAN
+                else:
+                    mode = KS_MODE_ARM | KS_MODE_LITTLE_ENDIAN
         elif cpuname.startswith("sparc"):
             arch = KS_ARCH_SPARC
             if info.is_64bit():
