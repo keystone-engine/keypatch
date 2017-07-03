@@ -190,10 +190,10 @@ class Keypatch_Asm:
                 mode = KS_MODE_SPARC64
             else:
                 mode = KS_MODE_SPARC32
-            if cpuname == "sparcb":
-                mode += KS_MODE_BIG_ENDIAN
+            if idaapi.cvar.inf.mf:
+                mode |= KS_MODE_BIG_ENDIAN
             else:
-                mode += KS_MODE_LITTLE_ENDIAN
+                mode |= KS_MODE_LITTLE_ENDIAN
         elif cpuname.startswith("ppc"):
             arch = KS_ARCH_PPC
             if info.is_64bit():
@@ -209,10 +209,10 @@ class Keypatch_Asm:
                 mode = KS_MODE_MIPS64
             else:
                 mode = KS_MODE_MIPS32
-            if cpuname == "mipsl":
-                mode += KS_MODE_LITTLE_ENDIAN
+            if idaapi.cvar.inf.mf:
+                mode |= KS_MODE_BIG_ENDIAN
             else:
-                mode += KS_MODE_BIG_ENDIAN
+                mode |= KS_MODE_LITTLE_ENDIAN
         elif cpuname.startswith("systemz") or cpuname.startswith("s390x"):
             arch = KS_ARCH_SYSTEMZ
             mode = KS_MODE_BIG_ENDIAN
