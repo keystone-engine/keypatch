@@ -1427,26 +1427,43 @@ except:
 
 # hooks for popup menu
 class Hooks(idaapi.UI_Hooks):
-    def finish_populating_tform_popup(self, form, popup):
-        # We'll add our action to all "IDA View-*"s.
-        # If we wanted to add it only to "IDA View-A", we could
-        # also discriminate on the widget's title:
-        #
-        #  if idaapi.get_tform_title(form) == "IDA View-A":
-        #      ...
-        #
-        if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
-            try:
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Search.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
-            except:
-                pass
+    if idaapi.IDA_SDK_VERSION >= 700:
+        # IDA >= 700 right click widget popup
+        def finish_populating_widget_popup(self, form, popup):
+            if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
+                try:
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Search.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
+                except:
+                    pass
+    else:
+        # IDA < 700 right click popup
+        def finish_populating_tform_popup(self, form, popup):
+            # We'll add our action to all "IDA View-*"s.
+            # If we wanted to add it only to "IDA View-A", we could
+            # also discriminate on the widget's title:
+            #
+            #  if idaapi.get_tform_title(form) == "IDA View-A":
+            #      ...
+            #
+            if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
+                try:
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Search.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
+                except:
+                    pass
 
 
 # check if we already initialized Keypatch
