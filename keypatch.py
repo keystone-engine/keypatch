@@ -1430,7 +1430,7 @@ class Hooks(idaapi.UI_Hooks):
     if idaapi.IDA_SDK_VERSION >= 700:
         # IDA >= 700 right click widget popup
         def finish_populating_widget_popup(self, form, popup):
-            if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
+            if idaapi.get_widget_type(form) == idaapi.BWN_DISASM:
                 try:
                     idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
                     idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
