@@ -159,7 +159,11 @@ class Keypatch_Asm:
 
         # heuristically detect hardware setup
         info = idaapi.get_inf_structure()
-        cpuname = info.procName.lower()
+        if idaapi.IDA_SDK_VERSION >= 700:
+            # IDA >= 7.0 case change
+            cpuname = info.procname.lower()
+        else:
+            cpuname = info.procName.lower()
         #print("Keypatch MF = %s" %idaapi.cvar.inf.mf)
         if cpuname == "metapc":
             arch = KS_ARCH_X86
@@ -1373,11 +1377,15 @@ try:
 
         @classmethod
         def update(self, ctx):
-            if ctx.form_type == idaapi.BWN_DISASM:
-                return idaapi.AST_ENABLE_FOR_FORM
-            else:
-                return idaapi.AST_DISABLE_FOR_FORM
-
+            try:
+                if ctx.form_type == idaapi.BWN_DISASM:
+                    return idaapi.AST_ENABLE_FOR_FORM
+                else:
+                    return idaapi.AST_DISABLE_FOR_FORM
+            except:
+                # Add exception for main menu on >= IDA 7.0
+                return idaapi.AST_ENABLE_ALWAYS
+            
     # context menu for Patcher
     class Kp_MC_Patcher(Kp_Menu_Context):
         def activate(self, ctx):
@@ -1419,26 +1427,43 @@ except:
 
 # hooks for popup menu
 class Hooks(idaapi.UI_Hooks):
-    def finish_populating_tform_popup(self, form, popup):
-        # We'll add our action to all "IDA View-*"s.
-        # If we wanted to add it only to "IDA View-A", we could
-        # also discriminate on the widget's title:
-        #
-        #  if idaapi.get_tform_title(form) == "IDA View-A":
-        #      ...
-        #
-        if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
-            try:
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Search.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
-                idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
-            except:
-                pass
+    if idaapi.IDA_SDK_VERSION >= 700:
+        # IDA >= 700 right click widget popup
+        def finish_populating_widget_popup(self, form, popup):
+            if idaapi.get_widget_type(form) == idaapi.BWN_DISASM:
+                try:
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Search.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
+                except:
+                    pass
+    else:
+        # IDA < 700 right click popup
+        def finish_populating_tform_popup(self, form, popup):
+            # We'll add our action to all "IDA View-*"s.
+            # If we wanted to add it only to "IDA View-A", we could
+            # also discriminate on the widget's title:
+            #
+            #  if idaapi.get_tform_title(form) == "IDA View-A":
+            #      ...
+            #
+            if idaapi.get_tform_type(form) == idaapi.BWN_DISASM:
+                try:
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Patcher.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Fill_Range.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Undo.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Search.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, "-", 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_Updater.get_name(), 'Keypatch/')
+                    idaapi.attach_action_to_popup(form, popup, Kp_MC_About.get_name(), 'Keypatch/')
+                except:
+                    pass
 
 
 # check if we already initialized Keypatch
@@ -1499,27 +1524,37 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         self.opts = None
         if kp_initialized == False:
             kp_initialized = True
-            # add Keypatch menu
-            menu = idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (Ctrl-Alt-K)", "", 1, self.patcher, None)
-            if menu is not None:
-                idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "Check for update", "", 1, self.updater, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "Search", "", 1, self.search, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
-                idaapi.add_menu_item("Edit/Keypatch/", "Fill Range", "", 1, self.fill_range, None)
-            elif idaapi.IDA_SDK_VERSION < 680:
-                # older IDAPython (such as in IDAPro 6.6) does add new submenu.
-                # in this case, put Keypatch menu in menu Edit \ Patch program
-                # not sure about v6.7, so to be safe we just check against v6.8
-                idaapi.add_menu_item("Edit/Patch program/", "-", "", 0, self.menu_null, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: About", "", 0, self.about, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update", "", 0, self.updater, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Search", "", 0, self.search, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill Range", "", 0, self.fill_range, None)
-                idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl-Alt-K)", "", 0, self.patcher, None)
+
+            if idaapi.IDA_SDK_VERSION >= 700:
+                # Add menu IDA >= 7.0
+                idaapi.attach_action_to_menu("Edit/Keypatch/Patcher", Kp_MC_Patcher.get_name(), idaapi.SETMENU_APP)
+                idaapi.attach_action_to_menu("Edit/Keypatch/About", Kp_MC_About.get_name(), idaapi.SETMENU_APP)
+                idaapi.attach_action_to_menu("Edit/Keypatch/Check for update", Kp_MC_Updater.get_name(), idaapi.SETMENU_APP)
+                idaapi.attach_action_to_menu("Edit/Keypatch/Search", Kp_MC_Search.get_name(), idaapi.SETMENU_APP)
+                idaapi.attach_action_to_menu("Edit/Keypatch/Undo last patching", Kp_MC_Undo.get_name(), idaapi.SETMENU_APP)
+                idaapi.attach_action_to_menu("Edit/Keypatch/Fill Range", Kp_MC_Fill_Range.get_name(), idaapi.SETMENU_APP)
+            else:
+                # add Keypatch menu
+                menu = idaapi.add_menu_item("Edit/Keypatch/", "Patcher     (Ctrl-Alt-K)", "", 1, self.patcher, None)
+                if menu is not None:
+                    idaapi.add_menu_item("Edit/Keypatch/", "About", "", 1, self.about, None)
+                    idaapi.add_menu_item("Edit/Keypatch/", "Check for update", "", 1, self.updater, None)
+                    idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
+                    idaapi.add_menu_item("Edit/Keypatch/", "Search", "", 1, self.search, None)
+                    idaapi.add_menu_item("Edit/Keypatch/", "-", "", 1, self.menu_null, None)
+                    idaapi.add_menu_item("Edit/Keypatch/", "Undo last patching", "", 1, self.undo, None)
+                    idaapi.add_menu_item("Edit/Keypatch/", "Fill Range", "", 1, self.fill_range, None)
+                elif idaapi.IDA_SDK_VERSION < 680:
+                    # older IDAPython (such as in IDAPro 6.6) does add new submenu.
+                    # in this case, put Keypatch menu in menu Edit \ Patch program
+                    # not sure about v6.7, so to be safe we just check against v6.8
+                    idaapi.add_menu_item("Edit/Patch program/", "-", "", 0, self.menu_null, None)
+                    idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: About", "", 0, self.about, None)
+                    idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Check for update", "", 0, self.updater, None)
+                    idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Search", "", 0, self.search, None)
+                    idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Undo last patching", "", 0, self.undo, None)
+                    idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Fill Range", "", 0, self.fill_range, None)
+                    idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl-Alt-K)", "", 0, self.patcher, None)
 
             print("=" * 80)
             print("Keypatch v{0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
@@ -1614,7 +1649,21 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             idc.Warning("ERROR: Keypatch cannot handle this architecture (unsupported by Keystone), quit!")
             return
 
-        selection, addr_begin, addr_end = idaapi.read_selection()
+        if idaapi.IDA_SDK_VERSION >= 700:
+            # IDA >= 7.0 read selection change
+            p0 = idaapi.twinpos_t()
+            p1 = idaapi.twinpos_t()
+            view = idaapi.get_current_viewer()
+            selection = idaapi.read_selection(view, p0, p1)
+            if selection:
+                place0  = p0.place(view)
+                place1 = p1.place(view)
+
+                addr_begin  = place0.toea()
+                addr_end = place1.toea()
+        else:
+            selection, addr_begin, addr_end = idaapi.read_selection()
+
         if selection:
             # call Fill Range function on this selected code
             return self.fill_range()
@@ -1672,7 +1721,25 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             idc.Warning("ERROR: Keypatch cannot handle this architecture (unsupported by Keystone), quit!")
             return
 
-        selection, addr_begin, addr_end = idaapi.read_selection()
+        if idaapi.IDA_SDK_VERSION >= 700:
+            # IDA >= 7.0 read selection change
+            p0 = idaapi.twinpos_t()
+            p1 = idaapi.twinpos_t()
+            view = idaapi.get_current_viewer()
+            selection = idaapi.read_selection(view, p0, p1)
+
+            place0  = p0.place(view)
+            place1 = p1.place(view)
+
+            if selection:
+                place0  = p0.place(view)
+                place1 = p1.place(view)
+    
+                addr_begin  = place0.toea()
+                addr_end = place1.toea()
+        else:
+            selection, addr_begin, addr_end = idaapi.read_selection()
+
         if not selection:
             idc.Warning("ERROR: Keypatch requires a range to be selected for fill in, try again")
             return
