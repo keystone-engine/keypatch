@@ -2,13 +2,8 @@ This file credits the contributors of Keypatch
 Find more information on our project at http://keystone-engine.org/keypatch
 ---------------------------------------------------------------------------
 
-This tool uses some ideas from https://github.com/neoz/asm_ops.
-Thanks Neoz!
-
-Thanks Joxean Koret for being very patient whenever I bugged him
-for some tips on IDA programming.
-
-Thanks Kaijern (Xwings) & Nguyen Van Luc for valuable feedback on
-the beta code.
-
-The search function was contributed by Stefan Esser of Sektioneins.
+Neoz: inspired some ideas behind Keypatch with https://github.com/neoz/asm_ops.
+Joxean Koret: great tips on IDA programming.
+Kaijern (Xwings) & Nguyen Van Luc: valuable feedbacks during beta test.
+Stefan Esser: search functionality.
+Tyler Halfpop: IDA v7 support.
