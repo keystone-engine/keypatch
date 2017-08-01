@@ -162,9 +162,12 @@ class Keypatch_Asm:
         if idaapi.IDA_SDK_VERSION >= 700:
             # IDA >= 7.0 case change
             cpuname = info.procname.lower()
+            # since ida pro7 beta 3 (170724) renamed inf.mf -> is_be()/set_be()
+            is_be = idaapi.cvar.inf.is_be()
         else:
             cpuname = info.procName.lower()
-        # print("Keypatch BIG_ENDIAN = %s" %idaapi.cvar.inf.is_be())
+            is_be = idaapi.cvar.inf.mf
+        # print("Keypatch BIG_ENDIAN = %s" %is_be)
         if cpuname == "metapc":
             arch = KS_ARCH_X86
             if info.is_64bit():
@@ -177,14 +180,14 @@ class Keypatch_Asm:
             # ARM or ARM64
             if info.is_64bit():
                 arch = KS_ARCH_ARM64
-                if idaapi.cvar.inf.is_be():
+                if is_be:
                     mode = KS_MODE_BIG_ENDIAN
                 else:
                     mode = KS_MODE_LITTLE_ENDIAN
             else:
                 arch = KS_ARCH_ARM
                 # either big-endian or little-endian
-                if idaapi.cvar.inf.is_be():
+                if is_be:
                     mode = KS_MODE_ARM | KS_MODE_BIG_ENDIAN
                 else:
                     mode = KS_MODE_ARM | KS_MODE_LITTLE_ENDIAN
@@ -194,7 +197,7 @@ class Keypatch_Asm:
                 mode = KS_MODE_SPARC64
             else:
                 mode = KS_MODE_SPARC32
-            if idaapi.cvar.inf.is_be():
+            if is_be:
                 mode |= KS_MODE_BIG_ENDIAN
             else:
                 mode |= KS_MODE_LITTLE_ENDIAN
@@ -213,7 +216,7 @@ class Keypatch_Asm:
                 mode = KS_MODE_MIPS64
             else:
                 mode = KS_MODE_MIPS32
-            if idaapi.cvar.inf.is_be():
+            if is_be:
                 mode |= KS_MODE_BIG_ENDIAN
             else:
                 mode |= KS_MODE_LITTLE_ENDIAN
