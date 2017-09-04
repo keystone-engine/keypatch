@@ -22,10 +22,7 @@ import json
 from keystone import *
 import idc
 import idaapi
-try:
-    from idc import GetOpType, GetOpnd, ItemEnd
-except ImportError:
-    from idc_bc695 import GetOpType, GetOpnd, ItemEnd
+from idc import GetOpType, GetOpnd, ItemEnd
 
 # bleeding-edge version
 # on a new release, this should be sync with VERSION_STABLE file
@@ -165,12 +162,12 @@ class Keypatch_Asm:
 
         # heuristically detect hardware setup
         info = idaapi.get_inf_structure()
-        if idaapi.IDA_SDK_VERSION >= 700:
-            # IDA >= 7.0 case change
-            cpuname = info.procname.lower()
-        else:
-            cpuname = info.procName.lower()
         
+        try:
+            cpuname = info.procname.lower()
+        except:
+            cpuname = info.procName.lower()
+
         try:
             # since IDA7 beta 3 (170724) renamed inf.mf -> is_be()/set_be()
             is_be = idaapi.cvar.inf.is_be()
@@ -1655,15 +1652,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
             idc.Warning("ERROR: Keypatch cannot handle this architecture (unsupported by Keystone), quit!")
             return
 
-        if idaapi.IDA_SDK_VERSION >= 700:
-            # IDA >= 7.0 read selection change
-            p0 = idaapi.twinpos_t()
-            p1 = idaapi.twinpos_t()
-            view = idaapi.get_current_viewer()
-            selection = idaapi.read_selection(view, p0, p1)
-        else:
-            selection, addr_begin, addr_end = idaapi.read_selection()
-
+        selection, addr_begin, addr_end = idaapi.read_selection()
         if selection:
             # call Fill Range function on this selected code
             return self.fill_range()
@@ -1720,25 +1709,8 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
         if self.kp_asm.arch is None:
             idc.Warning("ERROR: Keypatch cannot handle this architecture (unsupported by Keystone), quit!")
             return
-
-        if idaapi.IDA_SDK_VERSION >= 700:
-            # IDA >= 7.0 read selection change
-            p0 = idaapi.twinpos_t()
-            p1 = idaapi.twinpos_t()
-            view = idaapi.get_current_viewer()
-            selection = idaapi.read_selection(view, p0, p1)
-
-            if selection:
-                place0  = p0.place(view)
-                place1 = p1.place(view)
-    
-                addr_begin  = place0.toea()
-                addr_end = place1.toea()
-            else:
-                raise RuntimeError('Unable to read selection')
-        else:
-            selection, addr_begin, addr_end = idaapi.read_selection()
-
+               
+        selection, addr_begin, addr_end = idaapi.read_selection()
         if not selection:
             idc.Warning("ERROR: Keypatch requires a range to be selected for fill in, try again")
             return
