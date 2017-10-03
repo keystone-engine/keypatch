@@ -13,7 +13,6 @@ See [this quick tutorial](TUTORIAL.md) for how to use Keypatch, and [this slides
 Keypatch is confirmed to work on IDA Pro version 6.4, 6.5, 6.6, 6.8, 6.9, 6.95, 7.0 but should work flawlessly on older versions.
 If you find any issues, please [report](http://keystone-engine.org/contact).
 
-
 --------------------
 
 ### 1. Why Keypatch?
@@ -33,7 +32,6 @@ Keypatch was developed to solve this problem. Thanks to the power of [Keystone](
 - Open source under GPL v2.
 
 Keypatch can be the missing piece in your toolset of reverse engineering.
-
 
 --------------
 
@@ -103,7 +101,6 @@ Email keystone.engine@gmail.com for any questions.
 
 For future update of Keypatch, follow our Twitter [@keystone_engine](https://twitter.com/keystone_engine) for announcement.
 
-
 ----
 
 ### Appendix. Install Keystone for IDA Pro
@@ -117,18 +114,165 @@ It is easiest to just download & install Python 2.7 module for Windows from [htt
 If you prefer to compile from source, just use MSVC 32-bit & follow the instructions in [Windows documentation](https://github.com/keystone-engine/keystone/blob/master/docs/COMPILE-WINDOWS.md) to build `keystone.dll`. After that, install Python module as in [Python documentation](https://github.com/keystone-engine/keystone/blob/master/bindings/python/README.md). Then copy `keystone.dll` to the directory of Keystone Python module.
 
 #### A2. MacOS
+Compiling dynamic library depends on cmake and compiler(llvm clang, gcc).
 
-Install the core & Python module of Keystone with the following command:
+Quick start steps:
 
-```
+- install brew
+
+  ```shell
+  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  ```
+
+- install cmake
+
+  ```shell
+  brew install cmake
+  ```
+
+- install keystone-engine
+
+  ```shell
+  sudo pip install keystone-engine
+  ```
+
+  - Check Method ( Whether the installation is successful? ):
+
+    - You enter this in the console of ida
+
+      Normal result:
+
+      ```python
+      Python>print keystone
+      <module 'keystone.keystone' from '/Applications/IDA Pro 7.0/ida64.app/Contents/MacOS/python/keystone/keystone.py'>
+
+      Python>print keystone.arm_const
+      <module 'keystone.arm_const' from '/Applications/IDA Pro 7.0/ida64.app/Contents/MacOS/python/keystone/arm_const.py'>
+      ```
+    - enter this in the  python standard console
+
+      Normal result:
+
+      ```python
+      Python 2.7.13 (default, Jul 18 2017, 09:17:00)
+      [GCC 4.2.1 Compatible Apple LLVM 8.1.0 (clang-802.0.42)] on darwin
+      Type "help", "copyright", "credits" or "license" for more information.
+      >>> import keystone
+      >>> print keystone
+      <module 'keystone' from '/usr/local/lib/python2.7/site-packages/keystone/__init__.pyc'>
+      >>> print keystone.arm_const
+      <module 'keystone.arm_const' from '/usr/local/lib/python2.7/site-packages/keystone/arm_const.pyc'>
+      >>>
+      ```
+
+
+If there are cmake and compiler, then install only the core & Python module of Keystone with the following command:
+
+```shell
 $ sudo pip install keystone-engine
 ```
 
+FAQ:
+
+1. "ImportError: No module named keystone
+
 In case IDA still complains "ImportError: No module named keystone" when Keypatch is loading, then do the following step to copy Keystone Python binding to IDA directory. (replace `6.8` with your actual IDA version)
 
-```
+```shell
 $ sudo cp -r /Library/Python/2.7/site-packages/keystone /Applications/IDA\ Pro\ 6.8/idaq.app/Contents/MacOS/python
 ```
+
+In addition, executable file rename "idaq" to "ida" in ida pro 7, so it is "ida.app/ida64.app".
+
+```shell
+cp -r /Library/Python/2.7/site-packages/keystone /Applications/IDA\ Pro\ 7.0/ida.app/Contents/MacOS/python 
+```
+
+2. "ImportError: ERROR: fail to load the dynamic library"
+
+![image](https://user-images.githubusercontent.com/5550316/30997551-3bde6be0-a48e-11e7-9813-3b196548f9a7.png)
+
+
+  - If the result "sudo pip install keystone-engine" of no error, but did not generate dynamic library, then try to manually do.
+
+    - Download keystone-engine, and extract this
+
+      ```shell
+      https://pypi.python.org/packages/9a/fc/ed0d3f46921bfaa612d9e8ce8313f99f4149ecf6635659510220c994cb72/keystone-engine-0.9.1-3.tar.gz
+      ```
+
+      - The site, Note please use latest version
+
+        ```
+        https://pypi.python.org/pypi/keystone-engine
+        ```
+
+    - Manual compile and install keystone-engine, see this log completely
+
+      ```shell
+      cd keystone-engine-0.9.1-3
+      sudo python setup.py install
+      ```
+
+      - cmake is only a build tool, and depends on your compiler
+
+      - Normal log:
+
+        ```shell
+        > sudo python setup.py install
+
+        running install
+        running build
+        running build_py
+        creating build
+        creating build/lib
+        creating build/lib/keystone
+        copying keystone/__init__.py -> build/lib/keystone
+        ...
+        copying keystone/x86_const.py -> build/lib/keystone
+        running build_clib
+        running custom_build_clib
+        building 'keystone' library
+        -- The C compiler identification is AppleClang 9.0.0.9000037
+        -- The CXX compiler identification is AppleClang 9.0.0.9000037
+
+        -- Check for working C compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc
+        -- Check for working C compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc -- works
+
+        -- Constructing LLVMBuild project information
+        -- Targeting AArch64
+        -- Targeting ARM
+        ...
+        -- Targeting X86
+        -- Found PkgConfig: /usr/local/bin/pkg-config (found version "0.29.2")
+        -- Configuring done
+        CMake Warning (dev):
+          Policy CMP0068 is not set: RPATH settings on macOS do not affect
+          install_name.  Run "cmake --help-policy CMP0068" for policy details.  Use
+          the cmake_policy command to set the policy and suppress this warning.
+
+          For compatibility with older versions of CMake, the install_name fields for
+          the following targets are still affected by RPATH settings:
+
+           keystone
+
+        This warning is for project developers.  Use -Wno-dev to suppress it.
+
+        -- Generating done
+        -- Build files have been written to: ~/Downloads/keystone-engine-0.9.1-3/src/build
+        Scanning dependencies of target keystone
+        [  0%] Building CXX object llvm/keystone/CMakeFiles/keystone.dir/__/lib/MC/ConstantPools.cpp.o
+        ...
+        [100%] Built target keystone
+        running install_lib
+        running install_data
+        copying src/build/llvm/lib/libkeystone.dylib -> /usr/local/lib/python2.7/site-packages/keystone
+        running install_egg_info
+        Removing /usr/local/lib/python2.7/site-packages/keystone_engine-0.9.1_3-py2.7.egg-info
+        Writing /usr/local/lib/python2.7/site-packages/keystone_engine-0.9.1_3-py2.7.egg-info
+        ```
+
+        ​
 
 #### A3. Linux
 
