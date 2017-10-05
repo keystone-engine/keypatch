@@ -108,15 +108,25 @@ For future update of Keypatch, follow our Twitter [@keystone_engine](https://twi
 
 ### Appendix. Install Keystone for IDA Pro
 
-IDA Pro's Python is 32-bit itself, so it can only loads 32-bit libraries. For this reason, we have to build & install Keystone 32-bit. This section details the steps towards that goal.
+We all know that before IDA 7.0, IDA Pro's Python is 32-bit itself, so it can only loads 32-bit libraries. For this reason, we have to build & install Keystone 32-bit. However, IDA 7.0 is now a native 64-bit application, which means we also need to install a correct version of Keystone. This section details the steps towards that goal.
 
 #### A1. Windows
+
+##### For 32-bit users ( IDA < 7.0 )
 
 It is easiest to just download & install Python 2.7 module for Windows from [http://www.keystone-engine.org/download](http://www.keystone-engine.org/download). Be sure to get the 32-bit version, regardless of your Windows edition.
 
 If you prefer to compile from source, just use MSVC 32-bit & follow the instructions in [Windows documentation](https://github.com/keystone-engine/keystone/blob/master/docs/COMPILE-WINDOWS.md) to build `keystone.dll`. After that, install Python module as in [Python documentation](https://github.com/keystone-engine/keystone/blob/master/bindings/python/README.md). Then copy `keystone.dll` to the directory of Keystone Python module.
 
+##### For 64-bit users (IDA >= 7.0 )
+
+If you have installed a Python 2.7 (64-bit) from the install package of IDA, then you can just add them into your `%PATH%`, and just download & install the module from pip or the [website](http://www.keystone-engine.org/download). Be sure you are getting the 64-bit version.
+
+We have not yet tested to compile it from source, but you are welcomed to use a MSVC 64-bit and following the simillar steps in the previous paragraph. It should work, but if not, just send a pull request.
+
 #### A2. MacOS
+
+##### For 32-bit users ( IDA < 7.0 )
 
 Install the core & Python module of Keystone with the following command:
 
@@ -130,7 +140,13 @@ In case IDA still complains "ImportError: No module named keystone" when Keypatc
 $ sudo cp -r /Library/Python/2.7/site-packages/keystone /Applications/IDA\ Pro\ 6.8/idaq.app/Contents/MacOS/python
 ```
 
+##### For 64-bit users (IDA >= 7.0 )
+
+Still waiting for brave warriors.
+
 #### A3. Linux
+
+##### For 32-bit users ( IDA < 7.0 )
 
 First of all, be sure that your machine already have Cmake installed. On Ubuntu, you can install Cmake with:
 
@@ -175,3 +191,6 @@ These complicated workarounds are necessary because IDA in Linux 64 bit doesn't 
 
 Done? Now go back to [section 2](#2-install) & install Keypatch for IDA Pro. Enjoy!
 
+##### For 64-bit users (IDA >= 7.0 )
+
+Still waiting for brave warriors.
