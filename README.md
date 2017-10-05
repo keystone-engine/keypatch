@@ -105,7 +105,7 @@ For future update of Keypatch, follow our Twitter [@keystone_engine](https://twi
 
 ### Appendix. Install Keystone for IDA Pro
 
-We all know that <= IDA 7.0 (eg: 6.8, 6.9, 6.95, 7.0_x86), IDA Pro's Python is 32-bit itself, so it can only loads 32-bit libraries. For this reason, we have to build & install Keystone 32-bit. However, IDA 7.0 is now a native 64-bit application, which means we also need to install a correct version of Keystone. This section details the steps towards that goal.
+We all know that before IDA 7.0, IDA Pro's Python is 32-bit itself, so it can only loads 32-bit libraries. For this reason, we have to build & install Keystone 32-bit. However, since IDA 7.0 supports both 32-bit & 64-bit, which means we also need to install a correct version of Keystone. This section details the steps towards that goal.
 
 #### A1. Windows
 
