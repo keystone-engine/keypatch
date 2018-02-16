@@ -282,13 +282,12 @@ class Keypatch_Asm:
                 if parts[2] != '':
                     sym = parts[2]
 
-                (t, v) = idaapi.get_name_value(address, sym)
-
-                # skip if name doesn't exist or segment / segment registers
-                if t in (idaapi.NT_SEG, idaapi.NT_NONE):
+                ea = idaapi.get_name_ea(address, sym)
+                # skip if name doesn't exist
+                if ea == idaapi.BADADDR:
                     continue
 
-                _op = _op.replace(sym, '0x{0:X}'.format(v))
+                _op = _op.replace(sym, '0x{0:X}'.format(ea))
 
             return _op
 
