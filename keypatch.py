@@ -668,14 +668,8 @@ class Keypatch_Asm:
             return (None, None)
 
         # ask IDA to re-analyze the patched area
-        if orig_func_end == idc.BADADDR:
-            # only analyze patched bytes, otherwise it would take a lot of time to re-analyze the whole binary
-            idaapi.analyze_area(address, address + patched_len + 1)
-        else:
-            idaapi.analyze_area(address, orig_func_end)
-
-            # try to fix IDA function re-analyze issue after patching
-            idaapi.func_setend(address, orig_func_end)
+        # only analyze patched bytes, otherwise it would take a lot of time to re-analyze the whole binary
+        idaapi.analyze_area(address, address + patched_len + 1)
 
         return (patched_len, orig_data)
 
