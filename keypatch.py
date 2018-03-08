@@ -571,7 +571,7 @@ class Keypatch_Asm:
                 # stw     r5, 0x120+var_108(r1)
                 
                 if self.arch == KS_ARCH_ARM and mode == KS_MODE_THUMB:
-                    return assembly.replace('movt.w', 'movt')
+                    assembly = assembly.replace('movt.w', 'movt')
 
                 if self.arch == KS_ARCH_ARM:
                     #print(">> before UAL fix: ", assembly)
