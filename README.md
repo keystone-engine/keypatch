@@ -184,9 +184,9 @@ If there are cmake and compiler, then install only the core & Python module of K
 $ sudo pip install keystone-engine
 ```
 
-FAQ:
+#### FAQ
 
-1. "ImportError: No module named keystone
+1. Error "ImportError: No module named keystone"
 
 In case IDA still complains "ImportError: No module named keystone" when Keypatch is loading, then do the following step to copy Keystone Python binding to IDA directory. (replace `6.8` with your actual IDA version)
 
@@ -200,10 +200,7 @@ In addition, executable file rename "idaq" to "ida" in ida pro 7, so it is "ida.
 cp -r /Library/Python/2.7/site-packages/keystone /Applications/IDA\ Pro\ 7.0/ida.app/Contents/MacOS/python 
 ```
 
-2. "ImportError: ERROR: fail to load the dynamic library"
-
-![image](https://user-images.githubusercontent.com/5550316/30997551-3bde6be0-a48e-11e7-9813-3b196548f9a7.png)
-
+2. Error "ImportError: ERROR: fail to load the dynamic library"
 
   - If the result "sudo pip install keystone-engine" of no error, but did not generate dynamic library, then try to manually do.
 
@@ -213,20 +210,18 @@ cp -r /Library/Python/2.7/site-packages/keystone /Applications/IDA\ Pro\ 7.0/ida
       https://pypi.python.org/packages/9a/fc/ed0d3f46921bfaa612d9e8ce8313f99f4149ecf6635659510220c994cb72/keystone-engine-0.9.1-3.tar.gz
       ```
 
-      - The site, Note please use latest version
+      - Or get the latest version from the link below.
 
         ```
         https://pypi.python.org/pypi/keystone-engine
         ```
 
-    - Manual compile and install keystone-engine, see this log completely. Compiled libkeystone.dylib is universal binary.
+    - Manual compile and install keystone-engine, see the log below. Note that libkeystone.dylib is universal binary.
 
       ```shell
       cd keystone-engine-0.9.1-3
       sudo python setup.py install
       ```
-
-      - cmake is only a build tool, and depends on your compiler
 
       - Normal log:
 
@@ -283,7 +278,6 @@ cp -r /Library/Python/2.7/site-packages/keystone /Applications/IDA\ Pro\ 7.0/ida
         Removing /usr/local/lib/python2.7/site-packages/keystone_engine-0.9.1_3-py2.7.egg-info
         Writing /usr/local/lib/python2.7/site-packages/keystone_engine-0.9.1_3-py2.7.egg-info
         ```
-
         ​
 
 #### A3. Linux
