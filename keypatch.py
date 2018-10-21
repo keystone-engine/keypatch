@@ -1055,9 +1055,9 @@ KEYPATCH:: Fill Range
             <End        :{c_addr_end}>
             <Size       :{c_size}>
             <~A~ssembly   :{c_assembly}>
-             <-   Fixup :{c_raw_assembly}>
-             <-   Encode:{c_encoding}>
-             <-   Size  :{c_encoding_len}>
+             <##-   Fixup :{c_raw_assembly}>
+             <##-   Encode:{c_encoding}>
+             <##-   Size  :{c_encoding_len}>
             <~N~OPs padding until next instruction boundary:{c_opt_padding}>
             <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>{c_opt_chk}>
             """, {
@@ -1107,12 +1107,12 @@ KEYPATCH:: Patcher
             <~S~yntax     :{c_syntax}>
             <Address    :{c_addr}>
             <Original   :{c_orig_assembly}>
-             <-   Encode:{c_orig_encoding}>
-             <-   Size  :{c_orig_len}>
+             <##-   Encode:{c_orig_encoding}>
+             <##-   Size  :{c_orig_len}>
             <~A~ssembly   :{c_assembly}>
-             <-   Fixup :{c_raw_assembly}>
-             <-   Encode:{c_encoding}>
-             <-   Size  :{c_encoding_len}>
+             <##-   Fixup :{c_raw_assembly}>
+             <##-   Encode:{c_encoding}>
+             <##-   Size  :{c_encoding_len}>
             <~N~OPs padding until next instruction boundary:{c_opt_padding}>
             <Save ~o~riginal instructions in IDA comment:{c_opt_comment}>{c_opt_chk}>
             """, {
@@ -1200,9 +1200,9 @@ KEYPATCH:: Search
             <~S~yntax     :{c_syntax}>
             <A~d~dress    :{c_addr}>
             <~A~ssembly   :{c_assembly}>
-             <-   Fixup :{c_raw_assembly}>
-             <-   Encode:{c_encoding}>
-             <-   Size  :{c_encoding_len}>
+             <##-   Fixup :{c_raw_assembly}>
+             <##-   Encode:{c_encoding}>
+             <##-   Size  :{c_encoding_len}>
             """, {
             'c_addr': self.NumericInput(value=address, swidth=MAX_ADDRESS_LEN, tp=self.FT_ADDR),
             'c_assembly': self.StringInput(value=self.asm[:MAX_INSTRUCTION_STRLEN], width=MAX_INSTRUCTION_STRLEN),
