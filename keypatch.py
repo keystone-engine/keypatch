@@ -282,13 +282,12 @@ class Keypatch_Asm:
                 if parts[2] != '':
                     sym = parts[2]
 
-                (t, v) = idaapi.get_name_value(address, sym)
-
-                # skip if name doesn't exist or segment / segment registers
-                if t in (idaapi.NT_SEG, idaapi.NT_NONE):
+                ea = idaapi.get_name_ea(address, sym)
+                # skip if name doesn't exist
+                if ea == idaapi.BADADDR:
                     continue
 
-                _op = _op.replace(sym, '0x{0:X}'.format(v))
+                _op = _op.replace(sym, '0x{0:X}'.format(ea))
 
             return _op
 
@@ -672,14 +671,8 @@ class Keypatch_Asm:
             return (None, None)
 
         # ask IDA to re-analyze the patched area
-        if orig_func_end == idc.BADADDR:
-            # only analyze patched bytes, otherwise it would take a lot of time to re-analyze the whole binary
-            idaapi.analyze_area(address, address + patched_len + 1)
-        else:
-            idaapi.analyze_area(address, orig_func_end)
-
-            # try to fix IDA function re-analyze issue after patching
-            idaapi.func_setend(address, orig_func_end)
+        # only analyze patched bytes, otherwise it would take a lot of time to re-analyze the whole binary
+        idaapi.analyze_area(address, address + patched_len + 1)
 
         return (patched_len, orig_data)
 
