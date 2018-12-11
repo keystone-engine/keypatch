@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Keypatch IDA Plugin, powered by Keystone Engine (http://www.keystone-engine.org).
-# By Nguyen Anh Quynh & Thanh Nguyen, 2016.
+# By Nguyen Anh Quynh & Thanh Nguyen, 2018.
 
 # Keypatch is released under the GPL v2. See COPYING for more information.
 # Find docs & latest version at http://keystone-engine.org/keypatch
@@ -16,6 +16,37 @@
 # To revert (undo) the last patching, choose menu "Edit | Keypatch | Undo last patching".
 # To check for update version, choose menu "Edit | Keypatch | Check for update".
 
+'''
+    Do not use shortcut(Ctrk + Alt + K) for debugging, otherwise debugging features will not be available.
+'''
+#########################################################################################################
+is_debug = False
+if is_debug:
+    ''' 
+        Install pydevd:
+
+        1. sudo pip install pydevd
+
+        or
+
+        2. Install pycharm-debug.egg, Ensure to use pycharm pro
+        https://www.jetbrains.com/help/pycharm/remote-debugging-with-product.html
+
+        # import site
+        # site.addsitedir("/usr/local/lib/python2.7/site-packages")
+    '''
+    try:
+        import pydevd
+
+        pydevd.settrace(host='localhost',
+                        port=51234,
+                        stdoutToServer=True,
+                        stderrToServer=True
+                        )
+    except Exception as e:
+        print(e)
+#########################################################################################################
+
 import os
 import re
 import json
@@ -29,7 +60,7 @@ from idc import GetOpType, GetOpnd, ItemEnd
 VERSION = "2.2"
 
 
-MAX_INSTRUCTION_STRLEN = 64
+MAX_INSTRUCTION_STRLEN = 256
 MAX_ENCODING_LEN = 40
 MAX_ADDRESS_LEN = 40
 ENCODING_ERR_OUTPUT = "..."
@@ -109,6 +140,27 @@ def url_download(url):
         # fail to save the downloaded file
         # print("Error:", e)
         return (2, None)
+
+
+def get_name_value(_from, name):
+    """
+    Fixed: the return value truncated(32 bit) of get_name_value function that analyzed 64 bit binary file about ida64 for win.
+
+    eg:
+    type == idaapi.NT_BYTE
+    (type, value) = idaapi.get_name_value(idc.BADADDR, "wcschr") # ida64 for win
+
+    value = 0x14003d3f0L is correct  ida64 > 7.x for macOS
+    value = 0x4003d3f0L is truncated ida64 >= 6.x for win, ida64 == 6.x for macOS
+
+    :param _from: ea
+    :param name: name string
+    :return: tuple
+    """
+    (type, value) = idaapi.get_name_value(_from, name)
+    if type == idaapi.NT_BYTE:  # type is byte name (regular name)
+        value = idaapi.get_name_ea(_from, name)
+    return (type, value)
 
 
 ## Main Keypatch class
@@ -267,7 +319,7 @@ class Keypatch_Asm:
     # todo: a better syntax parser for all archs
     def ida_resolve(self, assembly, address=idc.BADADDR):
         def _resolve(_op, ignore_kw=True):
-            names = re.findall(r"\b[a-z0-9_:\.]+\b", _op, re.I)
+            names = re.findall(r"[\$a-z0-9_:\.]+", _op, re.I)
 
             # try to resolve all names
             for name in names:
@@ -282,13 +334,13 @@ class Keypatch_Asm:
                 if parts[2] != '':
                     sym = parts[2]
 
-                (t, v) = idaapi.get_name_value(address, sym)
+                (type, value) = get_name_value(address, sym)
 
                 # skip if name doesn't exist or segment / segment registers
-                if t in (idaapi.NT_SEG, idaapi.NT_NONE):
+                if type in (idaapi.NT_SEG, idaapi.NT_NONE):
                     continue
 
-                _op = _op.replace(sym, '0x{0:X}'.format(v))
+                _op = _op.replace(sym, '0x{0:X}'.format(value))
 
             return _op
 
@@ -1300,7 +1352,7 @@ KEYPATCH:: About
 
             {FormChangeCb}
             Keypatch IDA plugin v%s, using Keystone Engine v%s.
-            (c) Nguyen Anh Quynh + Thanh Nguyen, 2016.
+            (c) Nguyen Anh Quynh + Thanh Nguyen, 2018.
 
             Keypatch is released under the GPL v2.
             Find more info at http://www.keystone-engine.org/keypatch
@@ -1563,7 +1615,7 @@ class Keypatch_Plugin_t(idaapi.plugin_t):
                     idaapi.add_menu_item("Edit/Patch program/", "Keypatch:: Patcher     (Ctrl-Alt-K)", "", 0, self.patcher, None)
 
             print("=" * 80)
-            print("Keypatch v{0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2016".format(VERSION))
+            print("Keypatch v{0} (c) Nguyen Anh Quynh & Thanh Nguyen, 2018".format(VERSION))
             print("Keypatch is using Keystone v{0}".format(keystone.__version__))
             print("Keypatch Patcher's shortcut key is Ctrl-Alt-K")
             print("Use the same hotkey Ctrl-Alt-K to open 'Fill Range' window on a selected range of code")
