@@ -53,7 +53,7 @@ import json
 from keystone import *
 import idc
 import idaapi
-from idc import GetOpType, GetOpnd, ItemEnd
+from idc import get_operand_type, print_operand, get_item_end
 
 # bleeding-edge version
 # on a new release, this should be sync with VERSION_STABLE file
@@ -128,11 +128,11 @@ def url_download(url):
         return (0, content)
 
     # handle errors
-    except HTTPError, e:
+    except HTTPError as e:
         # print "HTTP Error:", e.code , url
         # fail to download this file
         return (1, None)
-    except URLError, e:
+    except URLError as e:
         # print "URL Error:", e.reason , url
         # fail to download this file
         return (1, None)
@@ -471,9 +471,9 @@ class Keypatch_Asm:
             return asm
 
         opers = []
-        while GetOpType(address, i) > 0 and i < 6:
-            t = GetOpType(address, i)
-            o = GetOpnd(address, i)
+        while get_operand_type(address, i) > 0 and i < 6:
+            t = get_operand_type(address, i)
+            o = print_operand(address, i)
 
             if t in (idc.o_mem, idc.o_displ):
                 parts = list(o.partition(':'))
@@ -779,7 +779,7 @@ class Keypatch_Asm:
                     patch_data = patch_data.ljust(patch_len, X86_NOP)
                 elif patch_len > orig_len:
                     patch_end = address + patch_len - 1
-                    ins_end = ItemEnd(patch_end)
+                    ins_end = get_item_end(patch_end)
                     padding_len = ins_end - patch_end - 1
 
                     if padding_len > 0:
@@ -1018,7 +1018,7 @@ class Keypatch_Form(idaapi.Form):
                     self.SetControlValue(self.c_encoding, text.strip())
                     self.SetControlValue(self.c_encoding_len, len(encoding))
                     return True
-        except Exception,e:
+        except Exception as e:
             print (str(e))
             import traceback
             traceback.print_exc()
@@ -1201,11 +1201,11 @@ KEYPATCH:: Patcher
 
 
 # Search position chooser
-class SearchResultChooser(idaapi.Choose2):
+class SearchResultChooser(idaapi.Choose):
     def __init__(self, title, items, flags=0, width=None, height=None, embedded=False, modal=False):
         super(SearchResultChooser, self).__init__(
             title,
-            [["Address", idaapi.Choose2.CHCOL_HEX|40]],
+            [["Address", idaapi.Choose.CHCOL_HEX|40]],
             flags = flags,
             width = width,
             height = height,
