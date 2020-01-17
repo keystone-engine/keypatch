@@ -7,3 +7,4 @@ Joxean Koret: great tips on IDA programming.
 Kaijern (Xwings) & Nguyen Van Luc: valuable feedbacks during beta test.
 Stefan Esser: search functionality.
 Tyler Halfpop: IDA v7 support.
+Bo Wang: IDA v7.4 and python3 support
