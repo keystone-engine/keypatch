@@ -53,6 +53,7 @@ import json
 from keystone import *
 import idc
 import idaapi
+import ida_ida
 import six
 
 ################################ IDA 6/7 Compatibility import ###########################################
@@ -310,33 +311,48 @@ class Keypatch_Asm:
     def get_hardware_mode():
         (arch, mode) = (None, None)
 
-        # heuristically detect hardware setup
-        info = idaapi.get_inf_structure()
+        try:
+            # since IDA 9
+            is_64bit = ida_ida.idainfo_is_64bit()
+            is_32bit = ida_ida.idainfo_is_32bit()
+        except:
+            # heuristically detect hardware setup
+            info = idaapi.get_inf_structure()
+            is_64bit = info.is_64bit()
+            is_32bit = info.is_32bit()
         
         try:
-            cpuname = info.procname.lower()
+            # since IDA 9
+            cpuname = ida_ida.inf_get_procname().lower()
         except:
-            cpuname = info.procName.lower()
+            try:
+                cpuname = info.procname.lower()
+            except:
+                cpuname = info.procName.lower()
 
         try:
-            # since IDA7 beta 3 (170724) renamed inf.mf -> is_be()/set_be()
-            is_be = idaapi.cvar.inf.is_be()
+            # since IDA 9
+            is_be = ida_ida.inf_is_be()
         except:
-            # older IDA versions
-            is_be = idaapi.cvar.inf.mf
+            try:
+                # since IDA7 beta 3 (170724) renamed inf.mf -> is_be()/set_be()
+                is_be = idaapi.cvar.inf.is_be()
+            except:
+                # older IDA versions
+                is_be = idaapi.cvar.inf.mf
         # print("Keypatch BIG_ENDIAN = %s" %is_be)
         
         if cpuname == "metapc":
             arch = KS_ARCH_X86
-            if info.is_64bit():
+            if is_64bit:
                 mode = KS_MODE_64
-            elif info.is_32bit():
+            elif is_32bit:
                 mode = KS_MODE_32
             else:
                 mode = KS_MODE_16
         elif cpuname.startswith("arm"):
             # ARM or ARM64
-            if info.is_64bit():
+            if is_64bit:
                 arch = KS_ARCH_ARM64
                 if is_be:
                     mode = KS_MODE_BIG_ENDIAN
@@ -351,7 +367,7 @@ class Keypatch_Asm:
                     mode = KS_MODE_ARM | KS_MODE_LITTLE_ENDIAN
         elif cpuname.startswith("sparc"):
             arch = KS_ARCH_SPARC
-            if info.is_64bit():
+            if is_64bit:
                 mode = KS_MODE_SPARC64
             else:
                 mode = KS_MODE_SPARC32
@@ -361,7 +377,7 @@ class Keypatch_Asm:
                 mode |= KS_MODE_LITTLE_ENDIAN
         elif cpuname.startswith("ppc"):
             arch = KS_ARCH_PPC
-            if info.is_64bit():
+            if is_64bit:
                 mode = KS_MODE_PPC64
             else:
                 mode = KS_MODE_PPC32
@@ -370,7 +386,7 @@ class Keypatch_Asm:
                 mode += KS_MODE_BIG_ENDIAN
         elif cpuname.startswith("mips"):
             arch = KS_ARCH_MIPS
-            if info.is_64bit():
+            if is_64bit:
                 mode = KS_MODE_MIPS64
             else:
                 mode = KS_MODE_MIPS32
