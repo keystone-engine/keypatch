@@ -311,35 +311,29 @@ class Keypatch_Asm:
     def get_hardware_mode():
         (arch, mode) = (None, None)
 
-        try:
-            # since IDA 9
+        if idaapi.IDA_SDK_VERSION >= 900:
             is_64bit = ida_ida.idainfo_is_64bit()
             is_32bit = ida_ida.idainfo_is_32bit()
-        except:
+            cpuname = ida_ida.inf_get_procname().lower()
+            is_be = ida_ida.inf_is_be()
+        else:
             # heuristically detect hardware setup
             info = idaapi.get_inf_structure()
             is_64bit = info.is_64bit()
             is_32bit = info.is_32bit()
         
-        try:
-            # since IDA 9
-            cpuname = ida_ida.inf_get_procname().lower()
-        except:
             try:
                 cpuname = info.procname.lower()
             except:
                 cpuname = info.procName.lower()
 
-        try:
-            # since IDA 9
-            is_be = ida_ida.inf_is_be()
-        except:
             try:
                 # since IDA7 beta 3 (170724) renamed inf.mf -> is_be()/set_be()
                 is_be = idaapi.cvar.inf.is_be()
             except:
                 # older IDA versions
                 is_be = idaapi.cvar.inf.mf
+                
         # print("Keypatch BIG_ENDIAN = %s" %is_be)
         
         if cpuname == "metapc":
@@ -1556,10 +1550,17 @@ try:
         @classmethod
         def update(self, ctx):
             try:
-                if ctx.form_type == idaapi.BWN_DISASM:
-                    return idaapi.AST_ENABLE_FOR_FORM
+                if idaapi.IDA_SDK_VERSION >= 900:
+                    # Since IDA 9.0, form_type is deprecated, should use widget_type
+                    if ctx.widget_type == idaapi.BWN_DISASM:
+                        return idaapi.AST_ENABLE_FOR_FORM
+                    else:
+                        return idaapi.AST_DISABLE_FOR_FORM
                 else:
-                    return idaapi.AST_DISABLE_FOR_FORM
+                    if ctx.form_type == idaapi.BWN_DISASM:
+                        return idaapi.AST_ENABLE_FOR_FORM
+                    else:
+                        return idaapi.AST_DISABLE_FOR_FORM
             except Exception as e:
                 # Add exception for main menu on >= IDA 7.0
                 return idaapi.AST_ENABLE_ALWAYS
